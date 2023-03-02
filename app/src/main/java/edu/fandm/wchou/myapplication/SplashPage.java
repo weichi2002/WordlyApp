@@ -37,7 +37,7 @@ public class SplashPage extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                Intent i = new Intent(getApplicationContext(), GameConfig.class);
                 startActivity(i);
             }
         }, 1375);
