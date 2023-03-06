@@ -37,6 +37,8 @@ public class Game extends AppCompatActivity {
             actionBar.hide();
         }
 
+
+
         //select the button
         ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
         hintBtn.setOnClickListener(new View.OnClickListener() {
