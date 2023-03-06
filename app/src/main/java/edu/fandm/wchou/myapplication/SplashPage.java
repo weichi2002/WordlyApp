@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.ImageView;
 
 public class SplashPage extends AppCompatActivity {
 
@@ -16,8 +17,8 @@ public class SplashPage extends AppCompatActivity {
         setContentView(R.layout.activity_splash_page);
 
         // hide button bar
-        View text_view = findViewById(R.id.splash_screen_text_tv);
-        View rootView = text_view.getRootView();
+        ImageView logo = findViewById(R.id.imageView);
+        View rootView = logo.getRootView();
         rootView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -39,6 +40,8 @@ public class SplashPage extends AppCompatActivity {
             public void run() {
                 Intent i = new Intent(getApplicationContext(), GameConfig.class);
                 startActivity(i);
+
+                finish();
             }
         }, 1375);
     }
