@@ -22,6 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
+            android:layout_marginLeft="100dp"
             android:text="mask"
             android:textSize="15sp" />
 
@@ -31,6 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
+            android:layout_marginRight="100dp"
             android:text="part"
             android:textSize="15sp" />
 
