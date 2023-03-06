@@ -3,8 +3,16 @@ package edu.fandm.wchou.myapplication;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 public class Game extends AppCompatActivity {
 
@@ -28,5 +36,20 @@ public class Game extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }
+
+        //select the button
+        ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
+        hintBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "HINT", Toast.LENGTH_LONG ).show();
+            }
+        });
+
+
     }
+
+
+
 }
+
