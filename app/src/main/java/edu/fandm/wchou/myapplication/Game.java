@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 public class Game extends AppCompatActivity {
@@ -36,10 +37,9 @@ public class Game extends AppCompatActivity {
             actionBar.hide();
         }
 
-        //Fetch image from imageView
-//        ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
-//        Glide.with(this).load("https://search.brave.com/images?q=picture&source=web&img=1").into(cluePic);
-
+        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
+        ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
+        Glide.with(this).load("https://source.unsplash.com/1600x900/?New%20York?Landscape").apply(new RequestOptions().centerCrop()).into(cluePic);
 
         //Floating button
         ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
