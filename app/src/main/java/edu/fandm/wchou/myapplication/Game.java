@@ -3,15 +3,14 @@ package edu.fandm.wchou.myapplication;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+
+import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 public class Game extends AppCompatActivity {
@@ -22,7 +21,7 @@ public class Game extends AppCompatActivity {
         setContentView(R.layout.activity_game);
 
         // hide button bar
-        View imgView = findViewById(R.id.downloaded_image_iv);
+        View imgView = findViewById(R.id.clue_pic);
         View rootView = imgView.getRootView();
         rootView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -37,9 +36,12 @@ public class Game extends AppCompatActivity {
             actionBar.hide();
         }
 
+        //Fetch image from imageView
+//        ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
+//        Glide.with(this).load("https://search.brave.com/images?q=picture&source=web&img=1").into(cluePic);
 
 
-        //select the button
+        //Floating button
         ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
         hintBtn.setOnClickListener(new View.OnClickListener() {
             @Override

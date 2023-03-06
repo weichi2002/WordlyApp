@@ -10,7 +10,7 @@
 <!--    https://www.youtube.com/watch?v=ZfaaOr7Sv-U-->
     <!--    https://stackoverflow.com/questions/66388924/how-to-center-align-text-in-extended-floating-action-button-->
     <ImageView
-        android:id="@+id/downloaded_image_iv"
+        android:id="@+id/clue_pic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
