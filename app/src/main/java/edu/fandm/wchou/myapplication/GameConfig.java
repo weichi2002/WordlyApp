@@ -36,16 +36,21 @@ public class GameConfig extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    showWorking(false);
+                    //showWorking(false);
 
                     // generate solution path only if start, end words in dict
                     if (words_graph.words.containsKey(start_word) && words_graph.words.containsKey(end_word)) {
+
                         try {
                             Game.solution_path = words_graph.get_solution_path(start_word, end_word);
                         } catch (IllegalArgumentException iae) {
-                            Toast.makeText(getApplicationContext(), "Error. No solution found.", Toast.LENGTH_SHORT).show();
-                            iae.printStackTrace();
+                            Toast.makeText(getApplicationContext(), "Sorry, no solution path was found.", Toast.LENGTH_SHORT).show();
+                            //iae.printStackTrace();
+                            return;
                         }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Sorry, a word you typed is not available.", Toast.LENGTH_LONG).show();
+                        return;
                     }
                 }
             });
@@ -53,15 +58,24 @@ public class GameConfig extends AppCompatActivity {
     };
 
     public class SolutionPathExecutor {
-        public void build_words_dictionary(SolutionPathCallback callback) {
+        public void build_words_dictionary(String start_word, String end_word, SolutionPathCallback callback) {
             ExecutorService es = Executors.newFixedThreadPool(1);
             es.execute(new Runnable() {
                 @Override
                 public void run() {
                     //showWorking(true);
+
+                    // constructor builds words dictionary with txt file stored in assets folder
                     words_graph = new Graph(getApplicationContext(), "words_simple.txt");
 
-                    callback.generate_solution(start_word, end_word);
+                    // get solution path AFTER words dictionary is built in this separate thread
+                    try {
+                        callback.generate_solution(start_word, end_word);
+                    } catch (IllegalArgumentException iae) {
+                        Log.d(TAG, iae.getMessage());
+                        iae.printStackTrace();
+                    }
+
                 }
             });
         }
@@ -82,21 +96,18 @@ public class GameConfig extends AppCompatActivity {
                 EditText end_et = (EditText) findViewById(R.id.end_word_et);
                 end_word = end_et.getText().toString();
 
+                if (start_word.equals(end_word)) {
+                    Toast.makeText(getApplicationContext(), "Start and end words can't be the same.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (start_word.length() != end_word.length()) {
+                    Toast.makeText(getApplicationContext(), "Start and end words must be same length.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+
                 SolutionPathExecutor spe = new SolutionPathExecutor();
-                spe.build_words_dictionary(spc);
-
-                // Move below code into separate thread...
-
-//                // pass them into solution path algorithm
-//                Graph words_graph = new Graph(getApplicationContext(), "words_simple.txt");
-//                try {
-//                    Game.solution_path = words_graph.get_solution_path(start_word, end_word);
-//                } catch (IllegalArgumentException iae) {
-//                    Toast.makeText(getApplicationContext(), "Error. No solution found.", Toast.LENGTH_SHORT).show();
-//                    iae.printStackTrace();
-//                }
-
-                // Move above code into separate thread...
+                spe.build_words_dictionary(start_word, end_word, spc);
             }
         });
 
