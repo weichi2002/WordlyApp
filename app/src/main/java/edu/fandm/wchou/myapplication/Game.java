@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
@@ -14,16 +17,15 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
+    ArrayList<String> places = new ArrayList<String>(
+            Arrays.asList("Bug", "Buf", "But", "Cut"));
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game);
-
+    private void fullScreen(){
         // hide button bar
         View imgView = findViewById(R.id.clue_pic);
         View rootView = imgView.getRootView();
@@ -38,8 +40,44 @@ public class Game extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }
+    }
 
-        Log.d(TAG, "Solution path is: " + solution_path.toString());
+    //Populate the horizontal list of textviews of solution path
+    //adapted from chatgpt
+    private void populateList(){
+        LinearLayout linearLayout = findViewById(R.id.linear_layout);
+        for(int i = 0; i < places.size(); i++){
+
+            TextView textView = new TextView(this);
+            if (i == 0 || i == places.size()-1){
+                textView.setText(places.get(i));
+                textView.setTextSize(20);
+            }
+            Log.d("MyApp", "Setting border for TextView " + i);
+            textView.setBackgroundResource(R.drawable.border);
+            textView.setWidth(40*places.get(0).length());
+            textView.setHeight(75);
+
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            layoutParams.setMargins(50, 0, 50, 0); // Set margins (left, top, right, bottom)
+            textView.setLayoutParams(layoutParams);
+            linearLayout.addView(textView);
+        }
+
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_game);
+
+        //Log.d(TAG, "Solution path is: " + solution_path.toString());
+
+        fullScreen();
+        populateList();
 
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
