@@ -18,9 +18,14 @@ import java.util.Set;
 
 public class Graph {
     private static final String TAG = "GRAPH";
-    private Map<String, ArrayList<String>> words;
-
+    public Map<String, ArrayList<String>> words;
     private Context context; // get and store app context
+
+    public Graph(Context c) {
+        this.words = new HashMap<String, ArrayList<String>>();
+        this.context = c;
+    }
+
     public Graph(Context c, String file_name) {
         this.words = new HashMap<String, ArrayList<String>>();
         this.context = c;
@@ -89,6 +94,9 @@ public class Graph {
             }
             words_dict.put(word, word_neighbors);
         }
+
+        // send built words dictionary to GameConfig's static field "words_dict"
+        //GameConfig.words_graph = this.words;
     }
 
     // breadth-first search
@@ -140,4 +148,15 @@ public class Graph {
         if (path.isEmpty()) throw new IllegalArgumentException("Error. No solution path found.");
         return path;
     }
+
+    public interface BuildWordsDictionaryCallback{
+        void build_dictionary();
+    }
+
+    BuildWordsDictionaryCallback spc = new BuildWordsDictionaryCallback() {
+        @Override
+        public void build_dictionary() {
+
+        }
+    };
 }

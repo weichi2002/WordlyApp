@@ -8,25 +8,69 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class GameConfig extends AppCompatActivity {
     private static final String TAG = "GAME_CONFIG";
-
-
-
+    protected Graph words_graph;
+    public static String start_word = "";
+    public static String end_word = "";
 
     boolean isGenerating;
+
+    public interface SolutionPathCallback {
+        void generate_solution(String start_word, String end_word);
+    }
+
+    SolutionPathCallback spc = new SolutionPathCallback() {
+        @Override
+        public void generate_solution(String start_word, String end_word) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showWorking(false);
+
+                    // generate solution path only if start, end words in dict
+                    if (words_graph.words.containsKey(start_word) && words_graph.words.containsKey(end_word)) {
+                        try {
+                            Game.solution_path = words_graph.get_solution_path(start_word, end_word);
+                        } catch (IllegalArgumentException iae) {
+                            Toast.makeText(getApplicationContext(), "Error. No solution found.", Toast.LENGTH_SHORT).show();
+                            iae.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    public class SolutionPathExecutor {
+        public void build_words_dictionary(SolutionPathCallback callback) {
+            ExecutorService es = Executors.newFixedThreadPool(1);
+            es.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //showWorking(true);
+                    words_graph = new Graph(getApplicationContext(), "words_simple.txt");
+
+                    callback.generate_solution(start_word, end_word);
+                }
+            });
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_config);
-
-
-
-
 
         Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
         newPuzzleBtn.setOnClickListener(new View.OnClickListener() {
@@ -34,19 +78,23 @@ public class GameConfig extends AppCompatActivity {
             public void onClick(View view) {
                 // get editText for start and end words here
                 EditText start_et = (EditText) findViewById(R.id.start_word_et);
-                String start_word = start_et.getText().toString();
+                start_word = start_et.getText().toString();
                 EditText end_et = (EditText) findViewById(R.id.end_word_et);
-                String end_word = end_et.getText().toString();
+                end_word = end_et.getText().toString();
+
+                SolutionPathExecutor spe = new SolutionPathExecutor();
+                spe.build_words_dictionary(spc);
 
                 // Move below code into separate thread...
 
-                // pass them into solution path algorithm
-                Graph words_graph = new Graph(getApplicationContext(), "words_simple.txt");
-                try {
-                    Game.solution_path = words_graph.get_solution_path(start_word, end_word);
-                } catch (IllegalArgumentException iae) {
-                    iae.printStackTrace();
-                }
+//                // pass them into solution path algorithm
+//                Graph words_graph = new Graph(getApplicationContext(), "words_simple.txt");
+//                try {
+//                    Game.solution_path = words_graph.get_solution_path(start_word, end_word);
+//                } catch (IllegalArgumentException iae) {
+//                    Toast.makeText(getApplicationContext(), "Error. No solution found.", Toast.LENGTH_SHORT).show();
+//                    iae.printStackTrace();
+//                }
 
                 // Move above code into separate thread...
             }
@@ -60,8 +108,8 @@ public class GameConfig extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        isGenerating = true;
-        showWorking(isGenerating);
+        //isGenerating = true;
+        //showWorking(isGenerating);
     }
 
     private void showWorking(boolean on) {
