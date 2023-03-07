@@ -17,7 +17,7 @@
         >
 
         <EditText
-            android:id="@+id/word1_et"
+            android:id="@+id/start_word_et"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -27,7 +27,7 @@
             android:textSize="15sp" />
 
         <EditText
-            android:id="@+id/word2_et"
+            android:id="@+id/end_word_et"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
