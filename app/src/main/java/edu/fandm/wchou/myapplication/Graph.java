@@ -21,11 +21,6 @@ public class Graph {
     public Map<String, ArrayList<String>> words;
     private Context context; // get and store app context
 
-    public Graph(Context c) {
-        this.words = new HashMap<String, ArrayList<String>>();
-        this.context = c;
-    }
-
     public Graph(Context c, String file_name) {
         this.words = new HashMap<String, ArrayList<String>>();
         this.context = c;
@@ -141,22 +136,9 @@ public class Graph {
                 break;
             }
         }
-
         Log.d(TAG, "Solution path: " + path.toString());
 
-        // path also shouldn't allow any words already in the path to be added again
         if (path.isEmpty()) throw new IllegalArgumentException("Error. No solution path found.");
         return path;
     }
-
-    public interface BuildWordsDictionaryCallback{
-        void build_dictionary();
-    }
-
-    BuildWordsDictionaryCallback spc = new BuildWordsDictionaryCallback() {
-        @Override
-        public void build_dictionary() {
-
-        }
-    };
 }
