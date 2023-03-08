@@ -123,6 +123,21 @@ public class Game extends AppCompatActivity {
 
     }
 
+    // neighbors => same length with exactly one letter different between them
+    private boolean hasOneLetterDifference(String word1, String word2) {
+        //if (word1.length() != word2.length()) return false;
+        //if (word1.equals(word2)) return false;
+
+        int differ_count = 0;
+        for (int i = 0; i < word1.length(); i++) {
+            if (word1.charAt(i) != word2.charAt(i)) {
+                differ_count++;
+            }
+        }
+
+        return (differ_count == 1);
+    }
+
     protected void play_game() {
         if (solution_path == null) {
             Toast.makeText(getApplicationContext(), "Solution path isn't generated yet.", Toast.LENGTH_SHORT).show();
