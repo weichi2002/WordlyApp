@@ -73,20 +73,7 @@ public class GameConfig extends AppCompatActivity {
                     if (words_graph == null) {
                         words_graph = new Graph(getApplicationContext(), "words_simple.txt");
                     } else {
-//                        // if graph already populated, get its json-equivalent string from words_json_dictionary.txt file in internal storage
-//                        File rootDirOfApp = getFilesDir();
-//                        File targetFile = new File(rootDirOfApp, "words_json_dictionary.txt");
-//
-//                        // read data from file
-//                        try {
-//                            Scanner s = new Scanner(targetFile);
-//
-//
-//
-//                        } catch (FileNotFoundException fnfe) {
-//                            Toast.makeText(getApplicationContext(), "Failed to read file!", Toast.LENGTH_LONG).show();
-//                            fnfe.printStackTrace();
-//                        }
+                        // TODO: could get words map from json file here?
                     }
                     // get solution path AFTER words dictionary is built in this separate thread
                     callback.generate_solution(start_word, end_word);

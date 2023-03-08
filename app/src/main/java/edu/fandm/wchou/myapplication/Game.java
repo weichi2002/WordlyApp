@@ -15,13 +15,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
-
+    private static String curr_word_in_solution_to_guess = "";
 
     private void fullScreen(){
         // hide button bar
@@ -67,6 +68,31 @@ public class Game extends AppCompatActivity {
 
     }
 
+    protected void play_game() {
+        if (solution_path == null) {
+            Toast.makeText(getApplicationContext(), "Solution path isn't generated yet.", Toast.LENGTH_SHORT).show();
+        } else {
+            String start = GameConfig.start_word;
+            String end = GameConfig.end_word;
+
+            // not guessing start or end words in solution path
+            ArrayList<String> words_to_guess = solution_path;
+            words_to_guess.remove(start);
+            words_to_guess.remove(end);
+            Log.d(TAG, "Words to guess in solution path: " + words_to_guess.toString());
+
+            int curr_path_index = 0;
+            curr_word_in_solution_to_guess = words_to_guess.get(0);
+            Log.d(TAG, "Next word to guess:");
+
+            // generate image from API based on the next word in solution path
+            //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
+            ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
+            String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
+            Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,9 +104,11 @@ public class Game extends AppCompatActivity {
         populateList();
 
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-        ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
-        Glide.with(this).load("https://source.unsplash.com/1600x900/?New%20York?Landscape").apply(new RequestOptions().centerCrop()).into(cluePic);
+        //ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
+        //Glide.with(this).load("https://source.unsplash.com/1600x900/").apply(new RequestOptions().centerCrop()).into(cluePic);
+        play_game();
 
+        // hint button - show user the one-letter difference between last guess and next guess
         //Floating button
         ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
         hintBtn.setOnClickListener(new View.OnClickListener() {
@@ -89,11 +117,6 @@ public class Game extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "HINT", Toast.LENGTH_LONG ).show();
             }
         });
-
-
     }
-
-
-
 }
 
