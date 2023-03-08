@@ -69,13 +69,7 @@ public class GameConfig extends AppCompatActivity {
                     words_graph = new Graph(getApplicationContext(), "words_simple.txt");
 
                     // get solution path AFTER words dictionary is built in this separate thread
-                    try {
-                        callback.generate_solution(start_word, end_word);
-                    } catch (IllegalArgumentException iae) {
-                        Log.d(TAG, iae.getMessage());
-                        iae.printStackTrace();
-                    }
-
+                    callback.generate_solution(start_word, end_word);
                 }
             });
         }
