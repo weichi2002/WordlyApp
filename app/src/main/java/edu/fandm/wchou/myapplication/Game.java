@@ -27,6 +27,10 @@ public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
     private static String curr_word_in_solution_to_guess = "";
+    private static int curr_path_index = 0;
+
+    private ArrayList<String> words_to_guess;
+
 
     private void fullScreen(){
         // hide button bar
@@ -73,12 +77,22 @@ public class Game extends AppCompatActivity {
                             Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
                             textView.setText(answer);
 
+
+                            curr_path_index++; // move to next soln word to guess
+                            if (curr_path_index == words_to_guess.size()) {
+                                Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
+
+                                // and show star and go back to gameconfig activity
+
+                            } else {
+                                updateHintAndImage(); // update hint and img with next word to guess
+                            }
+
                         }else if(!hasOneLetterDifference(answer, guess)){
                             Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
                         }else{
                             Toast.makeText(Game.this, "That is not the word I am thinking of", Toast.LENGTH_SHORT).show();
                         }
-
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -140,22 +154,13 @@ public class Game extends AppCompatActivity {
         return (differ_count == 1);
     }
 
-    protected void play_game() {
+    protected void updateHintAndImage() {
         if (solution_path == null) {
             Toast.makeText(getApplicationContext(), "Solution path isn't generated yet.", Toast.LENGTH_SHORT).show();
         } else {
-            String start = GameConfig.start_word;
-            String end = GameConfig.end_word;
 
-            // not guessing start or end words in solution path
-            ArrayList<String> words_to_guess = new ArrayList<String>(solution_path);
-            words_to_guess.remove(start);
-            words_to_guess.remove(end);
-            Log.d(TAG, "Words to guess in solution path: " + words_to_guess.toString());
-
-            int curr_path_index = 0;
-            curr_word_in_solution_to_guess = words_to_guess.get(0);
-            Log.d(TAG, "Next word to guess:");
+            curr_word_in_solution_to_guess = words_to_guess.get(curr_path_index);
+            Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
 
             // generate image from API based on the next word in solution path
             //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
@@ -170,6 +175,10 @@ public class Game extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        words_to_guess = new ArrayList<String>(solution_path);
+        words_to_guess.remove(GameConfig.start_word);
+        words_to_guess.remove(GameConfig.end_word);
+
         //Log.d(TAG, "Solution path is: " + solution_path.toString());
 
         fullScreen();
@@ -178,7 +187,7 @@ public class Game extends AppCompatActivity {
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         //ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
         //Glide.with(this).load("https://source.unsplash.com/1600x900/").apply(new RequestOptions().centerCrop()).into(cluePic);
-        play_game();
+        updateHintAndImage();
 
         // hint button - show user the one-letter difference between last guess and next guess
         //Floating button
