@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,8 +21,7 @@ import java.util.Arrays;
 public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
-    ArrayList<String> places = new ArrayList<String>(
-            Arrays.asList("Bug", "Buf", "But", "Cut"));
+
 
     private void fullScreen(){
         // hide button bar
@@ -46,16 +44,16 @@ public class Game extends AppCompatActivity {
     //adapted from chatgpt
     private void populateList(){
         LinearLayout linearLayout = findViewById(R.id.linear_layout);
-        for(int i = 0; i < places.size(); i++){
+        for(int i = 0; i < solution_path.size(); i++){
 
             TextView textView = new TextView(this);
-            if (i == 0 || i == places.size()-1){
-                textView.setText(places.get(i));
+            if (i == 0 || i == solution_path.size()-1){
+                textView.setText(solution_path.get(i));
                 textView.setTextSize(20);
             }
             Log.d("MyApp", "Setting border for TextView " + i);
             textView.setBackgroundResource(R.drawable.border);
-            textView.setWidth(40*places.get(0).length());
+            textView.setWidth(60*solution_path.get(0).length());
             textView.setHeight(75);
 
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
