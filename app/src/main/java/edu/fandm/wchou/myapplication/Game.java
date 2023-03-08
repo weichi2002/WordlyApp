@@ -1,14 +1,18 @@
 package edu.fandm.wchou.myapplication;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -40,6 +44,41 @@ public class Game extends AppCompatActivity {
         }
     }
 
+    private void onClick(TextView textView){
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            // Handle click event here
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(Game.this);
+                builder.setTitle("Guess")
+                        .setMessage("Please enter your guess:");
+
+                final EditText input = new EditText(getApplicationContext());
+                input.setText(textView.getText().toString());
+
+                builder.setView(input);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Set the new text to the TextView
+                        textView.setText(input.getText().toString());
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Cancel the dialog
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
+            }
+        });
+
+    }
+
+
+
     //Populate the horizontal list of textviews of solution path
     //adapted from chatgpt
     private void populateList(){
@@ -50,8 +89,10 @@ public class Game extends AppCompatActivity {
             if (i == 0 || i == solution_path.size()-1){
                 textView.setText(solution_path.get(i));
                 textView.setTextSize(20);
+            }else{
+                //allow the user to click and enter guess
+                onClick(textView);
             }
-            Log.d("MyApp", "Setting border for TextView " + i);
             textView.setBackgroundResource(R.drawable.border);
             textView.setWidth(60*solution_path.get(0).length());
             textView.setHeight(75);
