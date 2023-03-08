@@ -19,7 +19,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
-import java.lang.reflect.Array;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -131,7 +131,7 @@ public class Game extends AppCompatActivity {
             String end = GameConfig.end_word;
 
             // not guessing start or end words in solution path
-            ArrayList<String> words_to_guess = solution_path;
+            ArrayList<String> words_to_guess = new ArrayList<String>(solution_path);
             words_to_guess.remove(start);
             words_to_guess.remove(end);
             Log.d(TAG, "Words to guess in solution path: " + words_to_guess.toString());
