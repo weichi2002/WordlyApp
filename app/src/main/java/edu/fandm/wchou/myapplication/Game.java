@@ -45,7 +45,7 @@ public class Game extends AppCompatActivity {
         }
     }
 
-    private void onClick(TextView textView){
+    private void onClick(TextView textView, int i){
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             // Handle click event here
@@ -61,8 +61,22 @@ public class Game extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        String answer = input.getText().toString();
                         // Set the new text to the TextView
-                        textView.setText(input.getText().toString());
+                        Log.d("The index  is", String.valueOf(i));
+                        Log.d("The solution is", solution_path.get(i));
+                        Log.d("The guess is", answer);
+                        if(answer.length()!=GameConfig.start_word.length()){
+                            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" long"), Toast.LENGTH_SHORT).show();
+                        }else if(answer.equals(solution_path.get(i))){
+
+                            Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
+                            textView.setText(answer);
+                        }else{
+                            Toast.makeText(Game.this, "That is not the word I am thinking off", Toast.LENGTH_SHORT).show();
+
+                        }
+
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -92,7 +106,7 @@ public class Game extends AppCompatActivity {
                 textView.setTextSize(20);
             }else{
                 //allow the user to click and enter guess
-                onClick(textView);
+                onClick(textView, i);
             }
             textView.setBackgroundResource(R.drawable.border);
             textView.setWidth(60*solution_path.get(0).length());
