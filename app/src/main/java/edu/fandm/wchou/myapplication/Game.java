@@ -61,20 +61,22 @@ public class Game extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String answer = input.getText().toString();
+                        String guess = input.getText().toString().toLowerCase();
+                        String answer = solution_path.get(i);
                         // Set the new text to the TextView
                         Log.d("The index  is", String.valueOf(i));
                         Log.d("The solution is", solution_path.get(i));
-                        Log.d("The guess is", answer);
-                        if(answer.length()!=GameConfig.start_word.length()){
-                            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" long"), Toast.LENGTH_SHORT).show();
-                        }else if(answer.equals(solution_path.get(i))){
-
+                        Log.d("The guess is", guess);
+                        if(guess.length()!=GameConfig.start_word.length()){
+                            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" letters long"), Toast.LENGTH_SHORT).show();
+                        }else if(guess.equals(answer)){
                             Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
                             textView.setText(answer);
-                        }else{
-                            Toast.makeText(Game.this, "That is not the word I am thinking off", Toast.LENGTH_SHORT).show();
 
+                        }else if(!hasOneLetterDifference(answer, guess)){
+                            Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(Game.this, "That is not the word I am thinking of", Toast.LENGTH_SHORT).show();
                         }
 
                     }
