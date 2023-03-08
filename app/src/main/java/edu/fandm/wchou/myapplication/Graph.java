@@ -4,8 +4,11 @@ package edu.fandm.wchou.myapplication;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -25,9 +28,28 @@ public class Graph {
         this.words = new HashMap<String, ArrayList<String>>();
         this.context = c;
 
+        Log.d(TAG, "Building word paths, one moment...");
+
+        // build words dictionary
         this.get_word_keys(file_name); // put word keys into dict
         this.get_word_values(words); // put words' neighbors as their values
     }
+
+    // **Still need to work on this part**
+
+//    private void write_to_internal_file() {
+//        // write dictionary to an assets file to hold it in app's internal storage
+//        File rootDirOfApp = context.getFilesDir();
+//        File targetFile = new File(rootDirOfApp, "words_dictionary.json");
+//
+//        try {
+//            FileWriter fw = new FileWriter(targetFile);
+//            fw.write(someString);
+//        } catch (IOException ioe) {
+//            Toast.makeText(context.getApplicationContext(), "Failed to write to file!", Toast.LENGTH_LONG).show();
+//            ioe.printStackTrace();
+//        }
+//    }
 
     // put the initial words from txt file into dictionary as keys
     public void get_word_keys(String file_name) {
@@ -45,7 +67,6 @@ public class Graph {
             }
 
         } catch (FileNotFoundException fnfe) {
-            //System.out.println("Error. File not found.");
             fnfe.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -111,8 +132,6 @@ public class Graph {
                 Log.d(TAG, "Next word: " + next_word);
                 ArrayList<String> neighbors = words.get(next_word);
 
-                //Log.d(TAG, "Dict: \n" + this.toString());
-
                 for (String neighbor : neighbors) {
                     if ((!visited.contains(neighbor))) {
                         words_queue.addLast(neighbor);
@@ -123,6 +142,7 @@ public class Graph {
             // get solution path found
             if (next_word.equals(end_word)) {
                 Log.d(TAG, "Path found!");
+                Toast.makeText(context.getApplicationContext(), "Solution path found!\n Game is now ready to play", Toast.LENGTH_LONG).show();
 
                 String next_path_word = next_word;
                 path.add(next_path_word);

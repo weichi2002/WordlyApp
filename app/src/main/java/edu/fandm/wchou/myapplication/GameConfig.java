@@ -46,11 +46,12 @@ public class GameConfig extends AppCompatActivity {
                         } catch (IllegalArgumentException iae) {
                             Toast.makeText(getApplicationContext(), "Sorry, no solution path was found.", Toast.LENGTH_SHORT).show();
                             //iae.printStackTrace();
-                            return;
+                        } finally {
+                            Toast.makeText(getApplicationContext(), "Path found! You may now play.", Toast.LENGTH_SHORT).show();
                         }
+
                     } else {
                         Toast.makeText(getApplicationContext(), "Sorry, a word you typed is not available.", Toast.LENGTH_LONG).show();
-                        return;
                     }
                 }
             });
@@ -66,8 +67,9 @@ public class GameConfig extends AppCompatActivity {
                     //showWorking(true);
 
                     // constructor builds words dictionary with txt file stored in assets folder
-                    words_graph = new Graph(getApplicationContext(), "words_simple.txt");
-
+                    if (words_graph == null) {
+                        words_graph = new Graph(getApplicationContext(), "words_simple.txt");
+                    }
                     // get solution path AFTER words dictionary is built in this separate thread
                     callback.generate_solution(start_word, end_word);
                 }
