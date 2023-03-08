@@ -6,8 +6,11 @@ import android.content.res.AssetManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,23 +36,32 @@ public class Graph {
         // build words dictionary
         this.get_word_keys(file_name); // put word keys into dict
         this.get_word_values(words); // put words' neighbors as their values
+
+        // writing built words map to a file as a string-converted JSONObject
+        write_to_internal_file();
     }
 
     // **Still need to work on this part**
 
-//    private void write_to_internal_file() {
-//        // write dictionary to an assets file to hold it in app's internal storage
-//        File rootDirOfApp = context.getFilesDir();
-//        File targetFile = new File(rootDirOfApp, "words_dictionary.json");
-//
-//        try {
-//            FileWriter fw = new FileWriter(targetFile);
-//            fw.write(someString);
-//        } catch (IOException ioe) {
-//            Toast.makeText(context.getApplicationContext(), "Failed to write to file!", Toast.LENGTH_LONG).show();
-//            ioe.printStackTrace();
-//        }
-//    }
+    private void write_to_internal_file() {
+        // write dictionary to an assets file to hold it in app's internal storage
+        File rootDirOfApp = context.getFilesDir();
+        File targetFile = new File(rootDirOfApp, "words_json_dictionary.txt");
+
+        JSONObject word_dict_as_json = new JSONObject(words);
+        String json_map_as_string = word_dict_as_json.toString();
+
+
+        try {
+            FileWriter fw = new FileWriter(targetFile);
+            fw.write(json_map_as_string);
+            fw.close();
+        } catch (IOException ioe) {
+            Toast.makeText(context.getApplicationContext(), "Failed to write to file!", Toast.LENGTH_LONG).show();
+            ioe.printStackTrace();
+        }
+        Log.d(TAG, "Wrote to: " + targetFile.getAbsolutePath());
+    }
 
     // put the initial words from txt file into dictionary as keys
     public void get_word_keys(String file_name) {
