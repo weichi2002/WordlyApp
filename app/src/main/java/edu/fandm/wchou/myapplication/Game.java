@@ -3,6 +3,7 @@ package edu.fandm.wchou.myapplication;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -173,6 +174,7 @@ public class Game extends AppCompatActivity {
 
     protected void updateHintAndImage() {
 
+        //hint button shows the letter difference of the known word and the next word
         curr_word_in_solution_to_guess = words_to_guess.get(curr_path_index);
         Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
         char diff;
@@ -189,13 +191,23 @@ public class Game extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), String.valueOf(diff), Toast.LENGTH_SHORT).show();
             }
         });
-
-
-        // generate image from API based on the next word in solution path
-        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
         String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
+        Handler handler = new Handler();
         Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
+
+        //adapted from https://stackoverflow.com/questions/62293185/recursive-function-with-delay-in-between-calls
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("Update", "Update image");
+                updateHintAndImage();
+            }
+        }, 5000);
+        // generate image from API based on the next word in solution path
+        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
+
+
 
     }
 
@@ -215,9 +227,6 @@ public class Game extends AppCompatActivity {
 
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         updateHintAndImage();
-
-        // hint button - show user the one-letter difference between last guess and next guess
-        //Floating button
 
     }
 }
