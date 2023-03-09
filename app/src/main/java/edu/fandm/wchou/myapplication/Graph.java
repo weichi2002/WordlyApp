@@ -6,6 +6,10 @@ import android.content.res.AssetManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -14,9 +18,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Scanner;
@@ -24,50 +30,94 @@ import java.util.Set;
 
 public class Graph {
     private static final String TAG = "GRAPH";
-    public Map<String, ArrayList<String>> words;
-    private Context context; // get and store app context
+    private JSONObject words = new JSONObject();
+    private Context context = null; // get and store app context
 
-    public Graph(Context c, String file_name) {
-        this.words = new HashMap<String, ArrayList<String>>();
+    private String words_source_file = "words_simple.txt";
+    private String file_name = "words_json_dictionary.txt";
+
+    public JSONObject getWordsMap() {
+        return this.words;
+    }
+    public Context getContext() throws NullPointerException {
+        return this.context;
+    }
+    public String getFileName() {
+        return this.file_name;
+    }
+
+    public Graph(Context c) {
+        //this.words = new HashMap<String, ArrayList<String>>();
         this.context = c;
 
         Log.d(TAG, "Building word paths, one moment...");
-
         // build words dictionary
-        this.get_word_keys(file_name); // put word keys into dict
-        this.get_word_values(words); // put words' neighbors as their values
+        //this.get_word_keys(); // put word keys into dict
+        //this.get_word_values(words); // put words' neighbors as their values
 
-        // writing built words map to a file as a string-converted JSONObject
-        write_to_internal_file();
+        // writing built words map to a file as a string-converted JSONObject in app's internal storage
+        //this.write_to_internal_file();
+        this.read_from_internal_file();
     }
 
     // **Still need to work on this part**
-
     private void write_to_internal_file() {
         // write dictionary to an assets file to hold it in app's internal storage
         File rootDirOfApp = context.getFilesDir();
-        File targetFile = new File(rootDirOfApp, "words_json_dictionary.txt");
+        File targetFile = new File(rootDirOfApp, file_name);
 
-        JSONObject word_dict_as_json = new JSONObject(words);
-        String json_map_as_string = word_dict_as_json.toString();
-
-
+        //JSONObject word_dict_as_json = new JSONObject(words); // pass in words map to a new json object
         try {
             FileWriter fw = new FileWriter(targetFile);
-            fw.write(json_map_as_string);
+            fw.write(words.toString()); // write json map object to file as a string
             fw.close();
         } catch (IOException ioe) {
-            Toast.makeText(context.getApplicationContext(), "Failed to write to file!", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Failed to write to file!", Toast.LENGTH_LONG).show();
             ioe.printStackTrace();
         }
         Log.d(TAG, "Wrote to: " + targetFile.getAbsolutePath());
     }
 
+    private void read_from_internal_file() {
+        // get file
+        File rootDirOfApp = context.getFilesDir();
+        File targetFile = new File(rootDirOfApp, this.file_name);
+
+        // read data from the file
+        try {
+
+            Scanner s = new Scanner(targetFile);
+            String line = "";
+            while (s.hasNextLine()) {
+                line += s.nextLine();
+            }
+            s.close();
+
+            // convert string read from file back to a json object
+            JSONObject read_string_as_json = new JSONObject(line);
+            //this.words = read_string_as_json.toJSONArray();
+
+            // use fetched json object as the words map
+            this.words = read_string_as_json;
+
+
+            Log.d(TAG, "JSON object to string:\n" + read_string_as_json.toString());
+            Log.d(TAG, "JSON object length:\n" + read_string_as_json.length());
+
+        } catch (FileNotFoundException fnfe) {
+            Toast.makeText(context, "Failed to read file!", Toast.LENGTH_LONG).show();
+            fnfe.printStackTrace();
+        } catch (JSONException jsone) {
+            Toast.makeText(context, "Failed to create JSON object from file.", Toast.LENGTH_LONG).show();
+            jsone.printStackTrace();
+        }
+    }
+
     // put the initial words from txt file into dictionary as keys
-    public void get_word_keys(String file_name) {
+    public void get_word_keys() {
         try {
             AssetManager am = context.getAssets();
-            InputStream words_file = am.open(file_name);
+            InputStream words_file = am.open(this.words_source_file);
 
             //File words_file = new File(file_name);
             Scanner words_scanner = new Scanner(words_file);
@@ -82,17 +132,20 @@ public class Graph {
             fnfe.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
+    @NonNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (String w : words.keySet()) {
-            sb.append(w + ": " + words.get(w) + '\n');
+        for (Iterator<String> it = words.keys(); it.hasNext(); ) {
+            String w = it.next();
+            sb.append(w + ": " + words.optString(w) + '\n');
         }
         return sb.toString();
     }
-
 
     // neighbors => same length with exactly one letter different between them
     private boolean isNeighbor(String word1, String word2) {
@@ -111,11 +164,13 @@ public class Graph {
 
     // generate the words' neighboring words (one-letter difference between them) into their array-list values
     public void get_word_values(Map<String, ArrayList<String>> words_dict) {
-        Set<String> word_keys = words.keySet();
-        for (String word : word_keys) {
+        //Set<String> word_keys = words.keys();
+        for (Iterator<String> it = words.keys(); it.hasNext(); ) {
+            String word = it.next();
             // find word's neighbors in key set
             ArrayList<String> word_neighbors = new ArrayList<String>();
-            for (String other_word : word_keys) {
+            for (Iterator<String> iter = words.keys(); iter.hasNext(); ) {
+                String other_word = iter.next();
                 if (this.isNeighbor(word, other_word)) {
                     word_neighbors.add(other_word);
                 }
@@ -128,7 +183,7 @@ public class Graph {
     }
 
     // breadth-first search
-    public ArrayList<String> get_solution_path(String start_word, String end_word) {
+    public ArrayList<String> get_solution_path(String start_word, String end_word) throws JSONException {
         ArrayList<String> path = new ArrayList<String>();
 
         LinkedList<String> words_queue = new LinkedList<String>();
@@ -142,12 +197,17 @@ public class Graph {
 
             if (!next_word.equals(end_word)) {
                 Log.d(TAG, "Next word: " + next_word);
-                ArrayList<String> neighbors = words.get(next_word);
+                JSONArray neighbors = words.optJSONArray(next_word);
 
-                for (String neighbor : neighbors) {
-                    if ((!visited.contains(neighbor))) {
-                        words_queue.addLast(neighbor);
-                        words_visited_from.put(neighbor, next_word);
+                if (neighbors != null) {
+                    for (int i = 0; i < neighbors.length(); i++) {
+                        String neighbor = neighbors.getString(i);
+
+                        if ((!visited.contains(neighbor))) {
+                            words_queue.addLast(neighbor);
+                            words_visited_from.put(neighbor, next_word);
+                        }
+
                     }
                 }
             }
@@ -173,4 +233,6 @@ public class Graph {
         if (path.isEmpty()) throw new IllegalArgumentException("Error. No solution path found.");
         return path;
     }
+
+
 }

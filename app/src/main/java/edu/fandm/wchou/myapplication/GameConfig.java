@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -40,13 +42,15 @@ public class GameConfig extends AppCompatActivity {
                 @Override
                 public void run() {
                     //showWorking(false);
+                    //boolean start_word_is_in_graph = words_graph.getWordsMap().optString(start_word).equals("");
+                    //boolean end_word_is_in_graph = words_graph.getWordsMap().optString(end_word).equals("");
+
 
                     // generate solution path only if start, end words in dict
-                    if (words_graph.words.containsKey(start_word) && words_graph.words.containsKey(end_word)) {
-
+                    if (words_graph.getWordsMap().has(start_word) && words_graph.getWordsMap().has(end_word)) {
                         try {
                             Game.solution_path = words_graph.get_solution_path(start_word, end_word);
-                        } catch (IllegalArgumentException iae) {
+                        } catch (IllegalArgumentException | JSONException iae) {
                             Toast.makeText(getApplicationContext(), "Sorry, no solution path was found.", Toast.LENGTH_SHORT).show();
                             //iae.printStackTrace();
                         } finally {
@@ -71,9 +75,12 @@ public class GameConfig extends AppCompatActivity {
 
                     // constructor builds words dictionary with txt file stored in assets folder
                     if (words_graph == null) {
-                        words_graph = new Graph(getApplicationContext(), "words_simple.txt");
+                        words_graph = new Graph(getApplicationContext());
                     } else {
                         // TODO: could get words map from json file here?
+                        //File rootDirOfApp = getFilesDir();
+                        //File targetFile = new File(rootDirOfApp, words_graph.getFileName());
+
                     }
                     // get solution path AFTER words dictionary is built in this separate thread
                     callback.generate_solution(start_word, end_word);
