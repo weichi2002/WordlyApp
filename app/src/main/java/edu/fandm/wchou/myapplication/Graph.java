@@ -3,6 +3,7 @@ package edu.fandm.wchou.myapplication;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.renderscript.ScriptGroup;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -58,7 +59,9 @@ public class Graph {
         // writing built words map to a file as a string-converted JSONObject in app's internal storage
         //this.write_to_internal_file();
 
-        this.read_from_internal_file(); // can always use after initial json map written to app's internal storage
+        //this.read_from_internal_file(); // can always use after initial json map written to app's internal storage
+
+
     }
 
     public void build_words_map() throws JSONException {
@@ -112,11 +115,31 @@ public class Graph {
             Log.d(TAG, "JSON object length:\n" + read_string_as_json.length());
 
         } catch (FileNotFoundException fnfe) {
-            Toast.makeText(context, "Failed to read file!", Toast.LENGTH_LONG).show();
+            Log.d(TAG, "Failed to read file!");
             fnfe.printStackTrace();
         } catch (JSONException jsone) {
-            Toast.makeText(context, "Failed to create JSON object from file.", Toast.LENGTH_LONG).show();
+            Log.d(TAG, "Failed to create JSON object from file.");
             jsone.printStackTrace();
+        }
+    }
+
+    public void read_json_map_from_assets() throws JSONException {
+        try {
+            AssetManager am = context.getAssets();
+            InputStream is = am.open(json_map_file_name);
+            Scanner s = new Scanner(is);
+
+            String json_data_as_string = "";
+            while (s.hasNextLine()) {
+                json_data_as_string += s.nextLine();
+            }
+            s.close();
+
+            this.words = new JSONObject(json_data_as_string);
+            Log.d(TAG, "JSON map length:\n" + words.length());
+
+        } catch (IOException ioe) {
+            Log.d(TAG, "Error. Opening map file from assets failed.");
         }
     }
 
@@ -133,7 +156,7 @@ public class Graph {
             while (words_scanner.hasNextLine()) {
                 Log.d(TAG, "Putting word key: " + word);
 
-                this.words.put(word, new ArrayList<String>());
+                this.words.put(word, new JSONArray());
                 word = words_scanner.nextLine();
             }
 
@@ -204,7 +227,7 @@ public class Graph {
             visited.add(next_word);
 
             if (!next_word.equals(end_word)) {
-                Log.d(TAG, "Next word: " + next_word);
+                //Log.d(TAG, "Next word: " + next_word);
                 JSONArray neighbors = words.optJSONArray(next_word);
 
                 if (neighbors != null) {

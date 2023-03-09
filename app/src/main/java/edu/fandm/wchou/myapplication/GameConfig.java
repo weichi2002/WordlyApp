@@ -16,6 +16,7 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,64 +31,6 @@ public class GameConfig extends AppCompatActivity {
     public static String end_word = "";
 
     boolean isGenerating;
-
-    public interface SolutionPathCallback {
-        void generate_solution(String start_word, String end_word);
-    }
-
-    SolutionPathCallback spc = new SolutionPathCallback() {
-        @Override
-        public void generate_solution(String start_word, String end_word) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    //showWorking(false);
-                    //boolean start_word_is_in_graph = words_graph.getWordsMap().optString(start_word).equals("");
-                    //boolean end_word_is_in_graph = words_graph.getWordsMap().optString(end_word).equals("");
-
-
-                    // generate solution path only if start, end words in dict
-                    if (words_graph.getWordsMap().has(start_word) && words_graph.getWordsMap().has(end_word)) {
-                        try {
-                            Game.solution_path = words_graph.get_solution_path(start_word, end_word);
-                        } catch (IllegalArgumentException | JSONException iae) {
-                            Toast.makeText(getApplicationContext(), "Sorry, no solution path was found.", Toast.LENGTH_SHORT).show();
-                            //iae.printStackTrace();
-                        } finally {
-                            Toast.makeText(getApplicationContext(), "Path found! You may now play.", Toast.LENGTH_SHORT).show();
-                        }
-
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Sorry, a word you typed is not available.", Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
-        }
-    };
-
-    public class SolutionPathExecutor {
-        public void build_words_dictionary(String start_word, String end_word, SolutionPathCallback callback) {
-            ExecutorService es = Executors.newFixedThreadPool(1);
-            es.execute(new Runnable() {
-                @Override
-                public void run() {
-                    //showWorking(true);
-
-                    // constructor builds words dictionary with txt file stored in assets folder
-                    if (words_graph == null) {
-                        words_graph = new Graph(getApplicationContext());
-                    } else {
-                        // TODO: could get words map from json file here?
-                        //File rootDirOfApp = getFilesDir();
-                        //File targetFile = new File(rootDirOfApp, words_graph.getFileName());
-
-                    }
-                    // get solution path AFTER words dictionary is built in this separate thread
-                    callback.generate_solution(start_word, end_word);
-                }
-            });
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,8 +57,26 @@ public class GameConfig extends AppCompatActivity {
                 }
 
 
-                SolutionPathExecutor spe = new SolutionPathExecutor();
-                spe.build_words_dictionary(start_word, end_word, spc);
+                //SolutionPathExecutor spe = new SolutionPathExecutor();
+                //spe.build_words_dictionary(start_word, end_word, spc);
+
+                // move this to a separate thread
+                if (words_graph == null) {
+                    words_graph = new Graph(getApplicationContext());
+                    try {
+                        words_graph.read_json_map_from_assets();
+                    } catch (JSONException jsone) {
+                        Log.d(TAG, "Error. Reading JSON map data from assets file failed.");
+                    }
+                }
+                // move above to a separate thread
+
+
+                try {
+                    Game.solution_path = words_graph.get_solution_path(start_word, end_word);
+                } catch (JSONException jsone) {
+                    Log.d(TAG, "Error. Failed to generate solution path for the given start and end words.");
+                }
             }
         });
 
