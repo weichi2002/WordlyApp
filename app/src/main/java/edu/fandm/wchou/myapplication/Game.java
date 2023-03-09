@@ -194,6 +194,8 @@ public class Game extends AppCompatActivity {
         ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
         String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
         Handler handler = new Handler();
+
+        // TODO: fix error caused when in landscape mode "Cannot start a load for a destroyed activity." (IllegalArgumentException)
         Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
 
         //adapted from https://stackoverflow.com/questions/62293185/recursive-function-with-delay-in-between-calls
@@ -227,6 +229,9 @@ public class Game extends AppCompatActivity {
 
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         updateHintAndImage();
+
+        // TODO: hint button not displaying correct letter sometimes for certain words
+        //  (ex. after guessing "mars", "r" still displayed when next word's different letter is "t" for "mart")
 
     }
 }
