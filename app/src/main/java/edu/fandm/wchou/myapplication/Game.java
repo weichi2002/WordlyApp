@@ -29,9 +29,7 @@ public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
     private static String curr_word_in_solution_to_guess = "";
-    private static int curr_path_index = 0;
-
-    private ArrayList<String> words_to_guess;
+    private static int guess_index = 1;
 
 
     private void fullScreen(){
@@ -65,16 +63,15 @@ public class Game extends AppCompatActivity {
             textView.setTextSize(20);
             textView.setGravity(Gravity.CENTER);
             textView.setText(answer);
-
-            curr_path_index++; // move to next soln word to guess
-            if (curr_path_index == words_to_guess.size()) {
+            if (guess_index == solution_path.size()-1) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
 
-                // TODO: show star and go back to GameConfig activity when user wins game
-
             } else {
+                guess_index++; // move to next soln word to guess
                 updateHintAndImage(); // update hint and img with next word to guess
             }
+
+
 
         }else if(!hasOneLetterDifference(answer, guess)){
             Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
@@ -165,24 +162,25 @@ public class Game extends AppCompatActivity {
     private char getLetterDifference(String previous, String current){
         for (int i = 0; i < previous.length(); i++) {
             if (previous.charAt(i) != current.charAt(i)) {
+                Log.d("get letter diff", String.valueOf(current.charAt(i)));
                 return current.charAt(i);
             }
         }
-        //This wont go here because there is guranteed one letter differnce according to the dicitonary
+        //This wont go here because there is guaranteed one letter difference according to the dictionary
         return 'z';
     };
 
     protected void updateHintAndImage() {
 
         //hint button shows the letter difference of the known word and the next word
-        curr_word_in_solution_to_guess = words_to_guess.get(curr_path_index);
-        Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
-        char diff;
-        if(curr_path_index==0){
-            diff = getLetterDifference(solution_path.get(0), curr_word_in_solution_to_guess);
-        }else{
-            diff = getLetterDifference(solution_path.get(curr_path_index-1), curr_word_in_solution_to_guess);
+        if(guess_index==solution_path.size()-1){
+            ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
+            String curr_img_url = "https://source.unsplash.com/1600x900/?you%20won";
+            return;
         }
+        curr_word_in_solution_to_guess = solution_path.get(guess_index);
+        Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
+        char diff = getLetterDifference(solution_path.get(guess_index-1), curr_word_in_solution_to_guess);
 
         ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
         hintBtn.setOnClickListener(new View.OnClickListener() {
@@ -191,6 +189,9 @@ public class Game extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), String.valueOf(diff), Toast.LENGTH_SHORT).show();
             }
         });
+
+        // generate image from API based on the next word in solution path
+        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
         String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
         Handler handler = new Handler();
@@ -206,12 +207,7 @@ public class Game extends AppCompatActivity {
                 Log.d("Update", "Update image");
                 updateHintAndImage();
             }
-        }, 5000);
-        // generate image from API based on the next word in solution path
-        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-
-
-
+        }, 10000);
     }
 
     @Override
@@ -219,22 +215,9 @@ public class Game extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        words_to_guess = new ArrayList<String>(solution_path);
-        words_to_guess.remove(GameConfig.start_word);
-        words_to_guess.remove(GameConfig.end_word);
-
-        //Log.d(TAG, "Solution path is: " + solution_path.toString());
-
         fullScreen();
         populateList();
-
-        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         updateHintAndImage();
-
-        // TODO: hint button not displaying correct letter sometimes for certain words
-        //  (ex. after guessing "mars", "r" still displayed when next word's different letter is "t" for "mart")
-
-        // TODO: stop game from crashing when user enters all correct guesses and wins the game
 
         // TODO: new images not showing up when it says they're updating?
 
