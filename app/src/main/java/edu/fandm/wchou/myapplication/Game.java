@@ -233,6 +233,9 @@ public class Game extends AppCompatActivity {
         // TODO: hint button not displaying correct letter sometimes for certain words
         //  (ex. after guessing "mars", "r" still displayed when next word's different letter is "t" for "mart")
 
+        // TODO: stop game from crashing when user enters all correct guesses and wins the game
+
+
     }
 }
 
