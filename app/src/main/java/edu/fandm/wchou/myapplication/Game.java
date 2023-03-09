@@ -70,7 +70,7 @@ public class Game extends AppCompatActivity {
             if (curr_path_index == words_to_guess.size()) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
 
-                // and show star and go back to gameconfig activity
+                // TODO: show star and go back to GameConfig activity when user wins game
 
             } else {
                 updateHintAndImage(); // update hint and img with next word to guess
