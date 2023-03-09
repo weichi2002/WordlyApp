@@ -14,27 +14,25 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
-import java.util.Set;
 
 public class Graph {
     private static final String TAG = "GRAPH";
     private JSONObject words = new JSONObject();
     private Context context = null; // get and store app context
 
-    private String words_source_file = "words_simple.txt";
-    private String file_name = "words_json_dictionary.txt";
+    private String words_source_file = "source_words.txt";
+    private String json_map_file_name = "words_json_dictionary.txt";
 
     public JSONObject getWordsMap() {
         return this.words;
@@ -43,28 +41,37 @@ public class Graph {
         return this.context;
     }
     public String getFileName() {
-        return this.file_name;
+        return this.json_map_file_name;
     }
 
     public Graph(Context c) {
         //this.words = new HashMap<String, ArrayList<String>>();
         this.context = c;
 
-        Log.d(TAG, "Building word paths, one moment...");
-        // build words dictionary
-        //this.get_word_keys(); // put word keys into dict
-        //this.get_word_values(words); // put words' neighbors as their values
-
+        //Log.d(TAG, "Building word paths, one moment...");
+//        try {
+//            this.build_words_map();
+//        } catch (JSONException jsone) {
+//            Toast.makeText(context, "Error. Failed to build word/neighbor mappings.", Toast.LENGTH_SHORT).show();
+//            jsone.printStackTrace();
+//        }
         // writing built words map to a file as a string-converted JSONObject in app's internal storage
         //this.write_to_internal_file();
-        this.read_from_internal_file();
+
+        this.read_from_internal_file(); // can always use after initial json map written to app's internal storage
+    }
+
+    public void build_words_map() throws JSONException {
+        // build words dictionary
+        this.get_word_keys(); // put word keys into dict
+        this.get_word_values(); // put words' neighbors as their values
     }
 
     // **Still need to work on this part**
     private void write_to_internal_file() {
         // write dictionary to an assets file to hold it in app's internal storage
         File rootDirOfApp = context.getFilesDir();
-        File targetFile = new File(rootDirOfApp, file_name);
+        File targetFile = new File(rootDirOfApp, json_map_file_name);
 
         //JSONObject word_dict_as_json = new JSONObject(words); // pass in words map to a new json object
         try {
@@ -81,7 +88,7 @@ public class Graph {
     private void read_from_internal_file() {
         // get file
         File rootDirOfApp = context.getFilesDir();
-        File targetFile = new File(rootDirOfApp, this.file_name);
+        File targetFile = new File(rootDirOfApp, this.json_map_file_name);
 
         // read data from the file
         try {
@@ -101,7 +108,7 @@ public class Graph {
             this.words = read_string_as_json;
 
 
-            Log.d(TAG, "JSON object to string:\n" + read_string_as_json.toString());
+            //Log.d(TAG, "JSON object to string:\n" + read_string_as_json.toString());
             Log.d(TAG, "JSON object length:\n" + read_string_as_json.length());
 
         } catch (FileNotFoundException fnfe) {
@@ -114,7 +121,7 @@ public class Graph {
     }
 
     // put the initial words from txt file into dictionary as keys
-    public void get_word_keys() {
+    public void get_word_keys() throws JSONException {
         try {
             AssetManager am = context.getAssets();
             InputStream words_file = am.open(this.words_source_file);
@@ -124,16 +131,15 @@ public class Graph {
 
             String word = words_scanner.nextLine();
             while (words_scanner.hasNextLine()) {
+                Log.d(TAG, "Putting word key: " + word);
+
                 this.words.put(word, new ArrayList<String>());
                 word = words_scanner.nextLine();
             }
 
-        } catch (FileNotFoundException fnfe) {
-            fnfe.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } catch (IOException ioe) {
+            Toast.makeText(context, "Error. Getting word keys for map failed.", Toast.LENGTH_SHORT).show();
+            ioe.printStackTrace();
         }
     }
 
@@ -163,23 +169,25 @@ public class Graph {
     }
 
     // generate the words' neighboring words (one-letter difference between them) into their array-list values
-    public void get_word_values(Map<String, ArrayList<String>> words_dict) {
-        //Set<String> word_keys = words.keys();
-        for (Iterator<String> it = words.keys(); it.hasNext(); ) {
-            String word = it.next();
+    public void get_word_values() throws JSONException {
+        JSONArray word_keys = words.names();
+
+        for (int i = 0; i < Objects.requireNonNull(word_keys).length(); i++) {
+            String word = word_keys.getString(i);
+            Log.d(TAG, "Putting neighbors for word: " + word);
+
             // find word's neighbors in key set
-            ArrayList<String> word_neighbors = new ArrayList<String>();
-            for (Iterator<String> iter = words.keys(); iter.hasNext(); ) {
-                String other_word = iter.next();
+            JSONArray word_neighbors = new JSONArray();
+
+            for (int j = 0; j < word_keys.length(); j++) {
+                String other_word = word_keys.getString(j);
+
                 if (this.isNeighbor(word, other_word)) {
-                    word_neighbors.add(other_word);
+                    word_neighbors.put(other_word);
                 }
             }
-            words_dict.put(word, word_neighbors);
+            this.words.put(word, word_neighbors);
         }
-
-        // send built words dictionary to GameConfig's static field "words_dict"
-        //GameConfig.words_graph = this.words;
     }
 
     // breadth-first search
