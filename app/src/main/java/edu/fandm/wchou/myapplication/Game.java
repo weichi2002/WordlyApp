@@ -50,6 +50,40 @@ public class Game extends AppCompatActivity {
         }
     }
 
+    private void checkGuess(TextView textView, EditText input, int i){
+        String guess = input.getText().toString().toLowerCase();
+        String answer = solution_path.get(i);
+        // Set the new text to the TextView
+        Log.d("The index  is", String.valueOf(i));
+        Log.d("The solution is", solution_path.get(i));
+        Log.d("The guess is", guess);
+        if(guess.length()!=GameConfig.start_word.length()){
+            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" letters long"), Toast.LENGTH_SHORT).show();
+        }else if(guess.equals(answer)){
+            Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
+            textView.setTextSize(20);
+            textView.setGravity(Gravity.CENTER);
+            textView.setText(answer);
+
+            curr_path_index++; // move to next soln word to guess
+            if (curr_path_index == words_to_guess.size()) {
+                Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
+
+                // and show star and go back to gameconfig activity
+
+            } else {
+                updateHintAndImage(); // update hint and img with next word to guess
+            }
+
+        }else if(!hasOneLetterDifference(answer, guess)){
+            Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(Game.this, "That is not the word I am thinking of", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    //adapted from chatGPT
     private void onClick(TextView textView, int i){
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,36 +100,7 @@ public class Game extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String guess = input.getText().toString().toLowerCase();
-                        String answer = solution_path.get(i);
-                        // Set the new text to the TextView
-                        Log.d("The index  is", String.valueOf(i));
-                        Log.d("The solution is", solution_path.get(i));
-                        Log.d("The guess is", guess);
-                        if(guess.length()!=GameConfig.start_word.length()){
-                            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" letters long"), Toast.LENGTH_SHORT).show();
-                        }else if(guess.equals(answer)){
-                            Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
-                            textView.setTextSize(20);
-                            textView.setGravity(Gravity.CENTER);
-                            textView.setText(answer);
-
-
-                            curr_path_index++; // move to next soln word to guess
-                            if (curr_path_index == words_to_guess.size()) {
-                                Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
-
-                                // and show star and go back to gameconfig activity
-
-                            } else {
-                                updateHintAndImage(); // update hint and img with next word to guess
-                            }
-
-                        }else if(!hasOneLetterDifference(answer, guess)){
-                            Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
-                        }else{
-                            Toast.makeText(Game.this, "That is not the word I am thinking of", Toast.LENGTH_SHORT).show();
-                        }
+                        checkGuess(textView, input, i);
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -145,8 +150,6 @@ public class Game extends AppCompatActivity {
 
     // neighbors => same length with exactly one letter different between them
     private boolean hasOneLetterDifference(String word1, String word2) {
-        //if (word1.length() != word2.length()) return false;
-        //if (word1.equals(word2)) return false;
 
         int differ_count = 0;
         for (int i = 0; i < word1.length(); i++) {
@@ -158,20 +161,42 @@ public class Game extends AppCompatActivity {
         return (differ_count == 1);
     }
 
-    protected void updateHintAndImage() {
-        if (solution_path == null) {
-            Toast.makeText(getApplicationContext(), "Solution path isn't generated yet.", Toast.LENGTH_SHORT).show();
-        } else {
-
-            curr_word_in_solution_to_guess = words_to_guess.get(curr_path_index);
-            Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
-
-            // generate image from API based on the next word in solution path
-            //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-            ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
-            String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
-            Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
+    private char getLetterDifference(String previous, String current){
+        for (int i = 0; i < previous.length(); i++) {
+            if (previous.charAt(i) != current.charAt(i)) {
+                return current.charAt(i);
+            }
         }
+        //This wont go here because there is guranteed one letter differnce according to the dicitonary
+        return 'z';
+    };
+
+    protected void updateHintAndImage() {
+
+        curr_word_in_solution_to_guess = words_to_guess.get(curr_path_index);
+        Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
+        char diff;
+        if(curr_path_index==0){
+            diff = getLetterDifference(solution_path.get(0), curr_word_in_solution_to_guess);
+        }else{
+            diff = getLetterDifference(solution_path.get(curr_path_index-1), curr_word_in_solution_to_guess);
+        }
+
+        ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
+        hintBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), String.valueOf(diff), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        // generate image from API based on the next word in solution path
+        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
+        ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
+        String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
+        Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
+
     }
 
     @Override
@@ -189,19 +214,11 @@ public class Game extends AppCompatActivity {
         populateList();
 
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-        //ImageView cluePic = (ImageView)findViewById(R.id.clue_pic);
-        //Glide.with(this).load("https://source.unsplash.com/1600x900/").apply(new RequestOptions().centerCrop()).into(cluePic);
         updateHintAndImage();
 
         // hint button - show user the one-letter difference between last guess and next guess
         //Floating button
-        ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
-        hintBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "HINT", Toast.LENGTH_LONG ).show();
-            }
-        });
+
     }
 }
 
