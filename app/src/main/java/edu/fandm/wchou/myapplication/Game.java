@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -75,6 +76,8 @@ public class Game extends AppCompatActivity {
                             Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" letters long"), Toast.LENGTH_SHORT).show();
                         }else if(guess.equals(answer)){
                             Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
+                            textView.setTextSize(20);
+                            textView.setGravity(Gravity.CENTER);
                             textView.setText(answer);
 
 
@@ -120,6 +123,7 @@ public class Game extends AppCompatActivity {
             if (i == 0 || i == solution_path.size()-1){
                 textView.setText(solution_path.get(i));
                 textView.setTextSize(20);
+                textView.setGravity(Gravity.CENTER);
             }else{
                 //allow the user to click and enter guess
                 onClick(textView, i);
