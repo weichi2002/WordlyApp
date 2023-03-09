@@ -66,7 +66,6 @@ public class Game extends AppCompatActivity {
             if (guess_index == solution_path.size()-1) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
 
-                // TODO: show star and go back to GameConfig activity when user wins game
             } else {
                 guess_index++; // move to next soln word to guess
                 updateHintAndImage(); // update hint and img with next word to guess
@@ -174,6 +173,11 @@ public class Game extends AppCompatActivity {
     protected void updateHintAndImage() {
 
         //hint button shows the letter difference of the known word and the next word
+        if(guess_index==solution_path.size()-1){
+            ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
+            String curr_img_url = "https://source.unsplash.com/1600x900/?you%20won";
+            return;
+        }
         curr_word_in_solution_to_guess = solution_path.get(guess_index);
         Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
         char diff = getLetterDifference(solution_path.get(guess_index-1), curr_word_in_solution_to_guess);
@@ -204,10 +208,6 @@ public class Game extends AppCompatActivity {
                 updateHintAndImage();
             }
         }, 10000);
-
-
-
-
     }
 
     @Override
@@ -217,8 +217,6 @@ public class Game extends AppCompatActivity {
 
         fullScreen();
         populateList();
-
-        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         updateHintAndImage();
 
         // TODO: new images not showing up when it says they're updating?
