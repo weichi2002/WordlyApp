@@ -196,6 +196,7 @@ public class Game extends AppCompatActivity {
         Handler handler = new Handler();
 
         // TODO: fix error caused when in landscape mode "Cannot start a load for a destroyed activity." (IllegalArgumentException)
+        // TODO: this error is also occurring for other cases, like when hitting the back button mid-game to go back to the GameConfig activity screen
         Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
 
         //adapted from https://stackoverflow.com/questions/62293185/recursive-function-with-delay-in-between-calls
@@ -235,6 +236,7 @@ public class Game extends AppCompatActivity {
 
         // TODO: stop game from crashing when user enters all correct guesses and wins the game
 
+        // TODO: new images not showing up when it says they're updating?
 
     }
 }
