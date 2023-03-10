@@ -1,6 +1,5 @@
 package edu.fandm.wchou.myapplication;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,15 +15,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.List;
+
+
 
 public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
@@ -33,6 +35,10 @@ public class Game extends AppCompatActivity {
 
     private ArrayList<String> guessed_list;
     private static int guess_index = 1;
+
+    private ImageView imageView;
+    private List<String> imageUrls = new ArrayList<>();
+    private int currentImageIndex = 0;
 
 
 
@@ -142,6 +148,17 @@ public class Game extends AppCompatActivity {
 
 
 
+
+
+    private void loadImage() {
+        Glide.with(this)
+                .load(imageUrls.get(currentImageIndex))
+                .into(imageView);
+    }
+
+
+
+
     //Populate the horizontal list of textviews of solution path
     //adapted from chatgpt
     private void populateList(){
@@ -213,19 +230,27 @@ public class Game extends AppCompatActivity {
 
         // generate image from API based on the next word in solution path
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-        ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
-        String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
-        Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
+        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess);
+        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess+"s");
+        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess+"ed");
 
-        Handler handler = new Handler();
-        //adapted from https://stackoverflow.com/questions/62293185/recursive-function-with-delay-in-between-calls
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d("Update", "Update image");
-//                updateHintAndImage();
-//            }
-//        }, 10000);
+
+        imageView = findViewById(R.id.clue_pic);
+
+        // Load the first image
+        loadImage();
+        // Set up a listener to cycle through the images
+        imageView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                currentImageIndex = (currentImageIndex + 1) % imageUrls.size();
+                loadImage();
+                imageView.postDelayed(this, 5000); // Change image every 5 seconds
+            }
+        }, 5000);
+
+
+
     }
 
     @Override
@@ -244,8 +269,6 @@ public class Game extends AppCompatActivity {
         fullScreen();
         populateList();
         updateHintAndImage();
-
-        // TODO: new images not showing up when it says they're updating?
 
     }
     @Override
