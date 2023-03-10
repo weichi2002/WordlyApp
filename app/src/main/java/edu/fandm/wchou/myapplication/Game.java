@@ -311,7 +311,9 @@ public class Game extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // Remove any pending callbacks from the handler to prevent memory leaks
-        handler.removeCallbacksAndMessages(null);
+        if(handler!=null){
+            handler.removeCallbacksAndMessages(null);
+        }
     }
 
 
