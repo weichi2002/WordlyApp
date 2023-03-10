@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -221,6 +222,13 @@ public class GameConfig extends AppCompatActivity {
 
         PopupWindow popupWindow = new PopupWindow(GameConfig.this);
         popupWindow.setContentView(popupView);
+        popupWindow.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
+        popupWindow.setHeight(WindowManager.LayoutParams.MATCH_PARENT);
+
+        // Set the background color to fill the entire window
+        ColorDrawable colorDrawable = new ColorDrawable(Color.BLACK);
+        colorDrawable.setAlpha(255); // adjust the transparency as needed
+        popupWindow.setBackgroundDrawable(colorDrawable);
 
         View rootView = findViewById(android.R.id.content);
         ViewTreeObserver vto = rootView.getViewTreeObserver();
@@ -232,6 +240,13 @@ public class GameConfig extends AppCompatActivity {
 
                 // Show the popup window
                 popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
+            }
+        });
+        Button closeButton = popupView.findViewById(R.id.close_button);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
             }
         });
     }

@@ -8,18 +8,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:gravity="center"
+        >
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/wordly_logo"/>
+            android:src="@drawable/wordly_logo" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Welcome to my app!"
-            android:textSize="24sp"/>
+            android:padding="10dp"
+            android:text="Wordly challenges the user to transform a given start
+word to a given end word by changing only one letter at a
+time.  For example, starting from the word “cute” transform
+to the word to “cope.”  Each time after changing one letter,
+you must arrive at another valid word. The hint button and the image will be there
+and help you along the way!!!"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/close_button"
