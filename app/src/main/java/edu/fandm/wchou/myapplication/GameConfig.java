@@ -44,12 +44,15 @@ public class GameConfig extends AppCompatActivity {
                 @Override
                 public void run() {
                     showWorking(false);
+                    Button play_button = (Button) findViewById(R.id.play_btn);
 
                     // get editText for start and end words here
                     EditText start_et = (EditText) findViewById(R.id.start_word_et);
                     EditText end_et = (EditText) findViewById(R.id.end_word_et);
                     start_et.setText(start);
                     end_et.setText(end);
+
+                    play_button.setEnabled(true);
                 }
             });
         }
@@ -102,6 +105,9 @@ public class GameConfig extends AppCompatActivity {
                     Random rand = new Random();
                     int rand_word_index = rand.nextInt(word_keys.length());
                     int rand_word_index2 = rand.nextInt(word_keys.length());
+                    while (rand_word_index == rand_word_index2) {
+                        rand_word_index2 = rand.nextInt(word_keys.length());
+                    }
 
                     String rand_start_word = words_graph.getWordsMap().names().getString(rand_word_index);
                     String rand_end_word = words_graph.getWordsMap().names().getString(rand_word_index2);
@@ -112,8 +118,12 @@ public class GameConfig extends AppCompatActivity {
                         start_word = rand_start_word;
                         end_word = rand_end_word;
 
+                        Button play_button = (Button) findViewById(R.id.play_btn);
+                        showWorking(true);
+                        play_button.setEnabled(false);
                         GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
                         gspe.generateSolutionPath(rand_start_word, rand_end_word, gspc);
+                        //play_button.setEnabled(true);
                     }
                 } catch (JSONException jsone) {
                     //Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
@@ -140,9 +150,16 @@ public class GameConfig extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Start and end words must be same length.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                else if (Game.solution_path != null && Game.solution_path.isEmpty()) {
-                    Toast.makeText(getApplicationContext(), "Sorry, no solution path was found for these words. Try entering something else!", Toast.LENGTH_SHORT).show();
+                else if (start_word.length() != 4) {
+                    Toast.makeText(getApplicationContext(), "Sorry, words must be 4 letters long.", Toast.LENGTH_SHORT).show();
                     return;
+                } else {
+
+                    Button play_button = (Button) findViewById(R.id.play_btn);
+                    showWorking(true);
+                    play_button.setEnabled(false);
+                    GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
+                    gspe.generateSolutionPath(start_word, end_word, gspc);
                 }
 
                 Intent i = new Intent(getApplicationContext(), Game.class);
@@ -163,5 +180,9 @@ public class GameConfig extends AppCompatActivity {
             v.setVisibility(View.INVISIBLE);
             v.clearAnimation();
         }
+    }
+
+    private static void disableButton(Button b) {
+        b.setEnabled(false);
     }
 }
