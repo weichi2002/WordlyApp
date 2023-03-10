@@ -187,22 +187,23 @@ public class Game extends AppCompatActivity {
                         // Display a random image from the retrieved URLs in the ImageView
                         Random random = new Random();
                         int index = random.nextInt(imageUrls.length);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
-                            }
-                        });
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
+//                            }
+//                        });
 
                         // Cycle through the retrieved images every 5 seconds
                         while (true) {
                             try {
                                 Thread.sleep(5000);
                                 index = (index + 1) % imageUrls.length;
+                                int finalIndex = index;
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Picasso.get().load(imageUrls[currentImageIndex]).into(imageView);
+                                        Picasso.get().load(imageUrls[finalIndex]).into(imageView);
                                     }
                                 });
                             } catch (InterruptedException e) {
@@ -305,7 +306,7 @@ public class Game extends AppCompatActivity {
 
 //        imageView = findViewById(R.id.clue_pic);
 //
-//        // Load the first image
+        // Load the first image
 //        loadImage();
 //        // Set up a listener to cycle through the images
 //        imageView.postDelayed(new Runnable() {
