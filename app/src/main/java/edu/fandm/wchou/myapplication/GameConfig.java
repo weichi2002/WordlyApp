@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,15 +40,18 @@ import java.util.concurrent.Executors;
 
 public class GameConfig extends AppCompatActivity {
     private static final String TAG = "GAME_CONFIG";
-    protected static Graph words_graph;
+    protected Graph words_graph;
+    protected static JSONObject words_json_map;
+
     public static String start_word = "";
     public static String end_word = "";
 
     private static final String PREFS_NAME = "MyPrefsFile";
     private static final String LAST_APP_VERSION = "last_app_version";
 
-    Button play_button;
-    Button new_puzzle_button;
+    private Button play_button;
+    private Button new_puzzle_button;
+    private JSONArray word_keys;
 
 
     public interface GenerateSolutionPathCallback {
@@ -106,9 +110,8 @@ public class GameConfig extends AppCompatActivity {
         this.play_button = (Button) findViewById(R.id.play_btn);
         this.new_puzzle_button = (Button) findViewById(R.id.new_puzzle_bt);
 
-        // reading in json words map from assets on a separate thread
-        //ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
-        //rijme.read_in_words_map(rijmc);
+        this.words_graph = new Graph(getApplicationContext(), words_json_map);
+        this.word_keys = words_graph.getWordsMap().names();
 
         int currentVersionCode = BuildConfig.VERSION_CODE;
 
@@ -124,9 +127,6 @@ public class GameConfig extends AppCompatActivity {
             editor.apply();
         }
 
-
-
-
         //Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
         new_puzzle_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,7 +137,6 @@ public class GameConfig extends AppCompatActivity {
 
                 try {
                     // set random start and end words from map when "New Puzzle" button is clicked by user
-                    JSONArray word_keys = words_graph.getWordsMap().names();
                     Random rand = new Random();
                     assert word_keys != null;
                     int rand_word_index = rand.nextInt(word_keys.length());

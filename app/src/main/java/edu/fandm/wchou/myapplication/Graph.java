@@ -45,6 +45,10 @@ public class Graph {
         this.words = new JSONObject();
         this.context = c;
     }
+    public Graph(Context c, JSONObject map) {
+        this.words = map;
+        this.context = c;
+    }
 
     public void build_words_map() throws JSONException {
         // build words dictionary

@@ -46,16 +46,13 @@ public class SplashPage extends AppCompatActivity {
                 @Override
                 public void run() {
                     try {
-                        GameConfig.words_graph = new Graph(getApplicationContext());
-                        GameConfig.words_graph.read_json_map_from_assets();
-
-                        //GameConfig.words_graph.build_words_map();
-                        //GameConfig.words_graph.write_to_internal_file();
-
-                        callback.onComplete();
+                        Graph g = new Graph(getApplicationContext());
+                        g.read_json_map_from_assets();
+                        GameConfig.words_json_map = g.getWordsMap();
                     } catch (JSONException jsone) {
                         Log.d(TAG, "Error. Reading JSON map from assets into words graph failed.");
                     }
+                    callback.onComplete();
                 }
             });
         }
