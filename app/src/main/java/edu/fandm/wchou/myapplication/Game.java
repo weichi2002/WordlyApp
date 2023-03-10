@@ -2,6 +2,7 @@ package edu.fandm.wchou.myapplication;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -21,15 +22,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
     private static String curr_word_in_solution_to_guess = "";
     private static int guess_index = 1;
+
 
 
     private void fullScreen(){
@@ -49,6 +49,20 @@ public class Game extends AppCompatActivity {
         }
     }
 
+
+    private void endGame(){
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent i = new Intent(getApplicationContext(), GameConfig.class);
+                startActivity(i);
+                finish();
+            }
+        }, 3000);
+    }
+
     private void checkGuess(TextView textView, EditText input, int i){
         String guess = input.getText().toString().toLowerCase();
         String answer = solution_path.get(i);
@@ -63,15 +77,16 @@ public class Game extends AppCompatActivity {
             textView.setTextSize(20);
             textView.setGravity(Gravity.CENTER);
             textView.setText(answer);
-            if (guess_index == solution_path.size()-1) {
-                Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_SHORT).show();
+            guess_index++;
 
+            //The user got to the last letter
+            if (guess_index == solution_path.size()-1) {
+                Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
+                endGame();
             } else {
-                guess_index++; // move to next soln word to guess
+
                 updateHintAndImage(); // update hint and img with next word to guess
             }
-
-
 
         }else if(!hasOneLetterDifference(answer, guess)){
             Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
@@ -173,11 +188,6 @@ public class Game extends AppCompatActivity {
     protected void updateHintAndImage() {
 
         //hint button shows the letter difference of the known word and the next word
-        if(guess_index==solution_path.size()-1){
-            ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
-            String curr_img_url = "https://source.unsplash.com/1600x900/?you%20won";
-            return;
-        }
         curr_word_in_solution_to_guess = solution_path.get(guess_index);
         Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
         char diff = getLetterDifference(solution_path.get(guess_index-1), curr_word_in_solution_to_guess);
@@ -194,20 +204,20 @@ public class Game extends AppCompatActivity {
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
         String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
-        Handler handler = new Handler();
 
         // TODO: fix error caused when in landscape mode "Cannot start a load for a destroyed activity." (IllegalArgumentException)
         // TODO: this error is also occurring for other cases, like when hitting the back button mid-game to go back to the GameConfig activity screen
         Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
 
+        Handler handler = new Handler();
         //adapted from https://stackoverflow.com/questions/62293185/recursive-function-with-delay-in-between-calls
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.d("Update", "Update image");
-                updateHintAndImage();
-            }
-        }, 10000);
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d("Update", "Update image");
+//                updateHintAndImage();
+//            }
+//        }, 10000);
     }
 
     @Override

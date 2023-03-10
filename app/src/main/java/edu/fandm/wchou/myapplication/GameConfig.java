@@ -143,6 +143,10 @@ public class GameConfig extends AppCompatActivity {
                     GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
                     gspe.generateSolutionPath(gspc);
                 }
+
+                Intent i = new Intent(getApplicationContext(), Game.class);
+                startActivity(i);
+                finish();
             }
         });
     }
