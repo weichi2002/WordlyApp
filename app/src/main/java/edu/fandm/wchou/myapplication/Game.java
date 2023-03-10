@@ -8,6 +8,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -52,6 +54,12 @@ public class Game extends AppCompatActivity {
 
     private void endGame(){
 
+        ImageView starImg = (ImageView)findViewById(R.id.clue_pic);
+        starImg.setImageResource(R.drawable.baseline_star_24);
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate);
+        animation.setDuration(5000);
+        starImg.startAnimation(animation);
+
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
@@ -60,7 +68,7 @@ public class Game extends AppCompatActivity {
                 startActivity(i);
                 finish();
             }
-        }, 3000);
+        }, 5000);
     }
 
     private void checkGuess(TextView textView, EditText input, int i){
@@ -79,7 +87,7 @@ public class Game extends AppCompatActivity {
             textView.setText(answer);
             guess_index++;
 
-            //The user got to the last letter
+            //The user got to the last word
             if (guess_index == solution_path.size()-1) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
                 endGame();
