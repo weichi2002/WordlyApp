@@ -23,10 +23,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import java.util.Random;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Request;
 
 public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
@@ -39,6 +49,8 @@ public class Game extends AppCompatActivity {
     private ImageView imageView;
     private List<String> imageUrls = new ArrayList<>();
     private int currentImageIndex = 0;
+
+    private String apiKey = "34252989-dc19ee59010aba0c0da5b8937";
 
 
 
@@ -102,6 +114,7 @@ public class Game extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
                 endGame();
             } else {
+                imageUrls.clear();
                 updateHintAndImage(); // update hint and img with next word to guess
             }
 
@@ -146,14 +159,72 @@ public class Game extends AppCompatActivity {
 
     }
 
-    private void loadImage() {
-        Picasso.get()
-                .load(imageUrls.get(currentImageIndex))
-                .fit()
-                .centerCrop()
-                .into(imageView);
+    private void generateImages(){
+        OkHttpClient client = new OkHttpClient();
+        String url = "https://pixabay.com/api/?key=" + apiKey + "&q=" + curr_word_in_solution_to_guess + "&image_type=photo";
+        Request request = new Request.Builder().url(url).build();
+        imageView = (ImageView)findViewById(R.id.clue_pic);
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
 
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseData = response.body().string();
+                    try {
+                        // Parse the JSON response to retrieve the image URLs
+                        JSONObject jsonObject = new JSONObject(responseData);
+                        JSONArray jsonArray = jsonObject.getJSONArray("hits");
+                        final String[] imageUrls = new String[jsonArray.length()];
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject hit = jsonArray.getJSONObject(i);
+                            imageUrls[i] = hit.getString("webformatURL");
+                        }
+
+                        // Display a random image from the retrieved URLs in the ImageView
+                        Random random = new Random();
+                        int index = random.nextInt(imageUrls.length);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
+                            }
+                        });
+
+                        // Cycle through the retrieved images every 5 seconds
+                        while (true) {
+                            try {
+                                Thread.sleep(5000);
+                                index = (index + 1) % imageUrls.length;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Picasso.get().load(imageUrls[currentImageIndex]).into(imageView);
+                                    }
+                                });
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
+
+//
+//    private void loadImage() {
+//        Picasso.get()
+//                .load(imageUrls.get(currentImageIndex))
+//
+//                .into(imageView);
+//
+//    }
 
     //Populate the horizontal list of textviews of solution path
     //adapted from chatgpt
@@ -226,24 +297,25 @@ public class Game extends AppCompatActivity {
 
         // generate image from API based on the next word in solution path
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess);
-        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess+"s");
-        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess+"ed");
+//        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess);
+//        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess+"s");
+//        imageUrls.add("https://pixabay.com/api/?key=34252989-dc19ee59010aba0c0da5b8937Y&q=" + curr_word_in_solution_to_guess);
 
+        generateImages();
 
-        imageView = findViewById(R.id.clue_pic);
-
-        // Load the first image
-        loadImage();
-        // Set up a listener to cycle through the images
-        imageView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                currentImageIndex = (currentImageIndex + 1) % imageUrls.size();
-                loadImage();
-                imageView.postDelayed(this, 5000); // Change image every 5 seconds
-            }
-        }, 5000);
+//        imageView = findViewById(R.id.clue_pic);
+//
+//        // Load the first image
+//        loadImage();
+//        // Set up a listener to cycle through the images
+//        imageView.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                currentImageIndex = (currentImageIndex + 1) % imageUrls.size();
+//                loadImage();
+//                imageView.postDelayed(this, 5000); // Change image every 5 seconds
+//            }
+//        }, 5000);
 
 
 
