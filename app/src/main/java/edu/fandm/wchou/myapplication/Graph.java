@@ -3,7 +3,6 @@ package edu.fandm.wchou.myapplication;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.renderscript.ScriptGroup;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,14 +13,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -75,6 +72,20 @@ public class Graph {
         }
     }
 
+    public void write_to_internal_file() {
+        File rootDirOfApp = context.getFilesDir();
+        File targetFile = new File(rootDirOfApp, json_map_file_name);
+
+        try {
+            FileWriter fw = new FileWriter(targetFile);
+            fw.write(words.toString());
+            fw.close();
+        } catch (IOException ioe) {
+            Log.d(TAG, "Error. Failed to write to internal file.");
+            ioe.printStackTrace();
+        }
+    }
+
     // put the initial words from txt file into dictionary as keys
     public void get_word_keys() throws JSONException {
         try {
@@ -86,9 +97,10 @@ public class Graph {
 
             String word = words_scanner.nextLine();
             while (words_scanner.hasNextLine()) {
-                Log.d(TAG, "Putting word key: " + word);
-
-                this.words.put(word, new JSONArray());
+                if (word.length() == 4) {
+                    Log.d(TAG, "Putting word key: " + word);
+                    this.words.put(word, new JSONArray());
+                }
                 word = words_scanner.nextLine();
             }
 

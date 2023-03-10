@@ -35,26 +35,27 @@ public class GameConfig extends AppCompatActivity {
 
 
     public interface GenerateSolutionPathCallback {
-        void onComplete();
+        void onComplete(String start_word, String end_word);
     }
     GenerateSolutionPathCallback gspc = new GenerateSolutionPathCallback() {
         @Override
-        public void onComplete() {
+        public void onComplete(String start, String end) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     showWorking(false);
-                    if (Game.solution_path != null && Game.solution_path.size() > 2) {
-                        // go into game activity once solution is generated
-                        Intent i = new Intent(getApplicationContext(), Game.class);
-                        startActivity(i);
-                    }
+
+                    // get editText for start and end words here
+                    EditText start_et = (EditText) findViewById(R.id.start_word_et);
+                    EditText end_et = (EditText) findViewById(R.id.end_word_et);
+                    start_et.setText(start);
+                    end_et.setText(end);
                 }
             });
         }
     };
     public class GenerateSolutionPathExecutor {
-        void generateSolutionPath(final GenerateSolutionPathCallback callback) {
+        void generateSolutionPath(String start, String end, final GenerateSolutionPathCallback callback) {
             ExecutorService es = Executors.newFixedThreadPool(1);
             es.execute(new Runnable() {
                 @Override
@@ -64,8 +65,9 @@ public class GameConfig extends AppCompatActivity {
                         if (Game.solution_path.size() == 2) {
                             Log.d(TAG, "Wow, looks like you already win!");
                             return;
+                        } else {
+                            callback.onComplete(start, end);
                         }
-                        callback.onComplete();
                     } catch (JSONException jsone) {
                         Log.d(TAG, "Error. Failed to generate solution path for the given start and end words.");
                     } catch (IllegalArgumentException iae) {
@@ -104,13 +106,15 @@ public class GameConfig extends AppCompatActivity {
                     String rand_start_word = words_graph.getWordsMap().names().getString(rand_word_index);
                     String rand_end_word = words_graph.getWordsMap().names().getString(rand_word_index2);
 
-                    // keep getting a new random end word until one with same length as start word is found
-                    while (rand_start_word.length() != rand_end_word.length()) {
-                        rand_word_index2 = rand.nextInt(word_keys.length());
-                        rand_end_word = words_graph.getWordsMap().names().getString(rand_word_index2);
+                    if (rand_start_word.equals(rand_end_word)) {
+                        Toast.makeText(getApplicationContext(), "Start and end words can't be the same.", Toast.LENGTH_LONG).show();
+                    } else {
+                        start_word = rand_start_word;
+                        end_word = rand_end_word;
+
+                        GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
+                        gspe.generateSolutionPath(rand_start_word, rand_end_word, gspc);
                     }
-                    start_et.setText(rand_start_word);
-                    end_et.setText(rand_end_word);
                 } catch (JSONException jsone) {
                     //Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Error. Indexing a random start and end word failed.");
@@ -139,14 +143,10 @@ public class GameConfig extends AppCompatActivity {
                 else if (Game.solution_path != null && Game.solution_path.isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Sorry, no solution path was found for these words. Try entering something else!", Toast.LENGTH_SHORT).show();
                     return;
-                } else {
-                    GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
-                    gspe.generateSolutionPath(gspc);
                 }
 
                 Intent i = new Intent(getApplicationContext(), Game.class);
                 startActivity(i);
-                finish();
             }
         });
     }

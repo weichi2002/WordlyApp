@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
 import org.json.JSONException;
@@ -28,7 +30,6 @@ public class SplashPage extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    //showWorking(false);
                     Intent i = new Intent(getApplicationContext(), GameConfig.class);
                     startActivity(i);
 
@@ -44,10 +45,13 @@ public class SplashPage extends AppCompatActivity {
             es.execute(new Runnable() {
                 @Override
                 public void run() {
-                    //showWorking(true);
                     try {
                         GameConfig.words_graph = new Graph(getApplicationContext());
                         GameConfig.words_graph.read_json_map_from_assets();
+
+                        //GameConfig.words_graph.build_words_map();
+                        //GameConfig.words_graph.write_to_internal_file();
+
                         callback.onComplete();
                     } catch (JSONException jsone) {
                         Log.d(TAG, "Error. Reading JSON map from assets into words graph failed.");
