@@ -31,7 +31,7 @@ public class Game extends AppCompatActivity {
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
     private static String curr_word_in_solution_to_guess = "";
 
-    private ArrayList<String> guessed_list = new ArrayList<>();
+    private ArrayList<String> guessed_list;
     private static int guess_index = 1;
 
 
@@ -89,6 +89,8 @@ public class Game extends AppCompatActivity {
             textView.setText(answer);
             guess_index++;
             guessed_list.add(answer);
+            Log.d("GUeSSED LIST ADDEDED", answer);
+
             //The user got to the last word
             if (guess_index == solution_path.size()-1) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
@@ -147,7 +149,7 @@ public class Game extends AppCompatActivity {
         for(int i = 0; i < solution_path.size(); i++){
 
             TextView textView = new TextView(this);
-            if (i == 0 || i == solution_path.size()-1 || guessed_list.contains(solution_path.get(i))){
+            if ( (guessed_list != null && guessed_list.contains(solution_path.get(i))) || i == 0 || i == solution_path.size()-1 ){
                 textView.setText(solution_path.get(i));
                 textView.setTextSize(20);
                 textView.setGravity(Gravity.CENTER);
@@ -234,9 +236,13 @@ public class Game extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         if (savedInstanceState != null) {
-            guessed_list = savedInstanceState.getStringArrayList("myList");
+            guessed_list = savedInstanceState.getStringArrayList("guessed_list");
+            for(String item: guessed_list){
+                Log.d("GUESSED LIST HAS", item);
+            }
+        }else{
+            guessed_list = new ArrayList<>();
         }
-        guessed_list.add("zzzz");
 
         fullScreen();
         populateList();
