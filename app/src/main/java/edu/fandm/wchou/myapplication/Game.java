@@ -195,7 +195,16 @@ public class Game extends AppCompatActivity {
                             public void run() {
                                 currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
                                 Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
+                                View rootView = imageView.getRootView();
+                                rootView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
+                                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
                                 handler.postDelayed(this, 5000);
+
+
+
                             }
                         }, 5000);
                     } catch (JSONException e) {
