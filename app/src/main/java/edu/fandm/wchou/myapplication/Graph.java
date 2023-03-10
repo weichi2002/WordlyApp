@@ -31,6 +31,8 @@ public class Graph {
     private String words_source_file = "source_words.txt";
     private String json_map_file_name = "words_json_dictionary.txt";
 
+    //private JSONArray words_adjacency_matrix = new JSONArray();
+
     public JSONObject getWordsMap() {
         return this.words;
     }
@@ -178,15 +180,15 @@ public class Graph {
         words_queue.addLast(start_word);
         while (!words_queue.isEmpty()) {
             String next_word = words_queue.removeFirst();
-            visited.add(next_word);
 
-            if (!next_word.equals(end_word)) {
+            if (!next_word.equals(end_word) && !visited.contains(next_word)) {
                 //Log.d(TAG, "Next word: " + next_word);
                 JSONArray neighbors = words.optJSONArray(next_word);
 
                 if (neighbors != null) {
                     for (int i = 0; i < neighbors.length(); i++) {
                         String neighbor = neighbors.getString(i);
+                        Log.d(TAG, "Checking neighbor: " + neighbor);
 
                         if ((!visited.contains(neighbor))) {
                             words_queue.addLast(neighbor);
@@ -196,6 +198,8 @@ public class Graph {
                     }
                 }
             }
+            visited.add(next_word);
+
             // get solution path found
             if (next_word.equals(end_word)) {
                 Log.d(TAG, "Path found!");
