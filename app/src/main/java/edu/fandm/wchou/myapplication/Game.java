@@ -20,8 +20,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,18 +146,14 @@ public class Game extends AppCompatActivity {
 
     }
 
-
-
-
-
     private void loadImage() {
-        Glide.with(this)
+        Picasso.get()
                 .load(imageUrls.get(currentImageIndex))
+                .fit()
+                .centerCrop()
                 .into(imageView);
+
     }
-
-
-
 
     //Populate the horizontal list of textviews of solution path
     //adapted from chatgpt
@@ -276,5 +272,8 @@ public class Game extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putStringArrayList("guessed_list", guessed_list);
     }
+
+
+
 }
 
