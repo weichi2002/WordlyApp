@@ -211,7 +211,7 @@ public class Graph {
         }
         Log.d(TAG, "Solution path: " + path.toString());
 
-        if (path.isEmpty()) throw new IllegalArgumentException("Error. No solution path found.");
+        //if (path.isEmpty()) throw new IllegalArgumentException("Error. No solution path found.");
         return path;
     }
 }

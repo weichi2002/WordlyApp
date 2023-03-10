@@ -31,6 +31,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -45,6 +46,8 @@ public class GameConfig extends AppCompatActivity {
     private static final String PREFS_NAME = "MyPrefsFile";
     private static final String LAST_APP_VERSION = "last_app_version";
 
+    Button play_button;
+    Button new_puzzle_button;
 
 
     public interface GenerateSolutionPathCallback {
@@ -56,23 +59,28 @@ public class GameConfig extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    showWorking(false);
-                    Button play_button = (Button) findViewById(R.id.play_btn);
-
                     // get editText for start and end words here
                     EditText start_et = (EditText) findViewById(R.id.start_word_et);
                     EditText end_et = (EditText) findViewById(R.id.end_word_et);
                     start_et.setText(start);
                     end_et.setText(end);
 
+                    if (Game.solution_path.isEmpty()) {
+                        Toast.makeText(getApplicationContext(), "Sorry, no solution path was found for these words. Try entering something else.", Toast.LENGTH_SHORT).show();
+                    } else if (Game.solution_path.size() == 2) {
+                        Toast.makeText(getApplicationContext(), "Wow, looks like you already win! Try entering something else.", Toast.LENGTH_SHORT).show();
+                    }
+
                     play_button.setEnabled(true);
+                    new_puzzle_button.setEnabled(true);
+                    showWorking(false);
                 }
             });
         }
     };
     public class GenerateSolutionPathExecutor {
         void generateSolutionPath(String start, String end, final GenerateSolutionPathCallback callback) {
-            ExecutorService es = Executors.newFixedThreadPool(1);
+            ExecutorService es = Executors.newFixedThreadPool(5);
             es.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -80,15 +88,11 @@ public class GameConfig extends AppCompatActivity {
                         Game.solution_path = words_graph.get_solution_path(start_word, end_word);
                         if (Game.solution_path.size() == 2) {
                             Log.d(TAG, "Wow, looks like you already win!");
-                            return;
-                        } else {
-                            callback.onComplete(start, end);
                         }
                     } catch (JSONException jsone) {
                         Log.d(TAG, "Error. Failed to generate solution path for the given start and end words.");
-                    } catch (IllegalArgumentException iae) {
-                        iae.printStackTrace();
                     }
+                    callback.onComplete(start_word, end_word);
                 }
             });
         }
@@ -98,6 +102,9 @@ public class GameConfig extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_config);
+
+        this.play_button = (Button) findViewById(R.id.play_btn);
+        this.new_puzzle_button = (Button) findViewById(R.id.new_puzzle_bt);
 
         // reading in json words map from assets on a separate thread
         //ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
@@ -120,8 +127,8 @@ public class GameConfig extends AppCompatActivity {
 
 
 
-        Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
-        newPuzzleBtn.setOnClickListener(new View.OnClickListener() {
+        //Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
+        new_puzzle_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // get editText for start and end words here
@@ -132,14 +139,15 @@ public class GameConfig extends AppCompatActivity {
                     // set random start and end words from map when "New Puzzle" button is clicked by user
                     JSONArray word_keys = words_graph.getWordsMap().names();
                     Random rand = new Random();
+                    assert word_keys != null;
                     int rand_word_index = rand.nextInt(word_keys.length());
                     int rand_word_index2 = rand.nextInt(word_keys.length());
                     while (rand_word_index == rand_word_index2) {
                         rand_word_index2 = rand.nextInt(word_keys.length());
                     }
 
-                    String rand_start_word = words_graph.getWordsMap().names().getString(rand_word_index);
-                    String rand_end_word = words_graph.getWordsMap().names().getString(rand_word_index2);
+                    String rand_start_word = Objects.requireNonNull(words_graph.getWordsMap().names()).getString(rand_word_index);
+                    String rand_end_word = Objects.requireNonNull(words_graph.getWordsMap().names()).getString(rand_word_index2);
 
                     if (rand_start_word.equals(rand_end_word)) {
                         Toast.makeText(getApplicationContext(), "Start and end words can't be the same.", Toast.LENGTH_LONG).show();
@@ -147,12 +155,11 @@ public class GameConfig extends AppCompatActivity {
                         start_word = rand_start_word;
                         end_word = rand_end_word;
 
-                        Button play_button = (Button) findViewById(R.id.play_btn);
                         showWorking(true);
                         play_button.setEnabled(false);
+                        new_puzzle_button.setEnabled(false);
                         GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
                         gspe.generateSolutionPath(rand_start_word, rand_end_word, gspc);
-                        //play_button.setEnabled(true);
                     }
                 } catch (JSONException jsone) {
                     //Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
@@ -161,38 +168,54 @@ public class GameConfig extends AppCompatActivity {
             }
         });
 
-        Button playBtn = (Button) findViewById(R.id.play_btn);
-        playBtn.setOnClickListener(new View.OnClickListener() {
+        //Button playBtn = (Button) findViewById(R.id.play_btn);
+        play_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // get editText for start and end words here
                 EditText start_et = (EditText) findViewById(R.id.start_word_et);
-                start_word = start_et.getText().toString();
+                String user_start_word = start_et.getText().toString();
                 EditText end_et = (EditText) findViewById(R.id.end_word_et);
-                end_word = end_et.getText().toString();
+                String user_end_word = end_et.getText().toString();
 
-                if (start_word.equals(end_word)) {
+                if (user_start_word.equals(user_end_word)) {
                     Toast.makeText(getApplicationContext(), "Start and end words can't be the same.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                else if (start_word.length() != end_word.length()) {
+                else if (user_start_word.length() != user_end_word.length()) {
                     Toast.makeText(getApplicationContext(), "Start and end words must be same length.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                else if (start_word.length() != 4) {
+                else if (user_start_word.length() != 4) {
                     Toast.makeText(getApplicationContext(), "Sorry, words must be 4 letters long.", Toast.LENGTH_SHORT).show();
                     return;
-                } else {
-
-                    Button play_button = (Button) findViewById(R.id.play_btn);
+                } else if (start_word.equals(user_start_word) && end_word.equals(user_end_word)) {
+                    if (Game.solution_path != null && Game.solution_path.size() > 2) {
+                        Intent i = new Intent(getApplicationContext(), Game.class);
+                        startActivity(i);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Sorry, these words don't have a solution path. Try entering something else!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+                else {
                     showWorking(true);
                     play_button.setEnabled(false);
+                    new_puzzle_button.setEnabled(false);
                     GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
-                    gspe.generateSolutionPath(start_word, end_word, gspc);
-                }
+                    gspe.generateSolutionPath(user_start_word, user_end_word, gspc);
 
-                Intent i = new Intent(getApplicationContext(), Game.class);
-                startActivity(i);
+                    if (Game.solution_path != null && Game.solution_path.size() > 2) {
+                        start_word = user_start_word;
+                        end_word = user_end_word;
+
+                        Intent i = new Intent(getApplicationContext(), Game.class);
+                        startActivity(i);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Sorry, no solution was found for these words. Try entering something else!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
             }
         });
     }
@@ -209,10 +232,6 @@ public class GameConfig extends AppCompatActivity {
             v.setVisibility(View.INVISIBLE);
             v.clearAnimation();
         }
-    }
-
-    private static void disableButton(Button b) {
-        b.setEnabled(false);
     }
 
     //Adapted from chatGPT
