@@ -183,7 +183,7 @@ public class Graph {
             // get solution path found
             if (next_word.equals(end_word)) {
                 Log.d(TAG, "Path found!");
-                Toast.makeText(context.getApplicationContext(), "Solution path found!\n Game is now ready to play", Toast.LENGTH_LONG).show();
+                //Toast.makeText(context.getApplicationContext(), "Solution path found!\n Game is now ready to play", Toast.LENGTH_LONG).show();
 
                 String next_path_word = next_word;
                 path.add(next_path_word);

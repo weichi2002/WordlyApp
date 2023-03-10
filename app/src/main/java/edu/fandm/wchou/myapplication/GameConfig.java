@@ -28,41 +28,48 @@ import java.util.concurrent.Executors;
 
 public class GameConfig extends AppCompatActivity {
     private static final String TAG = "GAME_CONFIG";
-    protected Graph words_graph;
+    protected static Graph words_graph;
     public static String start_word = "";
     public static String end_word = "";
 
-    public interface ReadInJsonMapCallback {
+
+
+    public interface GenerateSolutionPathCallback {
         void onComplete();
     }
-
-    ReadInJsonMapCallback rijmc = new ReadInJsonMapCallback() {
+    GenerateSolutionPathCallback gspc = new GenerateSolutionPathCallback() {
         @Override
         public void onComplete() {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     showWorking(false);
+                    if (Game.solution_path != null && Game.solution_path.size() > 2) {
+                        // go into game activity once solution is generated
+                        Intent i = new Intent(getApplicationContext(), Game.class);
+                        startActivity(i);
+                    }
                 }
             });
         }
     };
-
-    public class ReadInJsonMapExecutor {
-        void read_in_words_map(final ReadInJsonMapCallback callback) {
-            ExecutorService es = Executors.newFixedThreadPool(2);
+    public class GenerateSolutionPathExecutor {
+        void generateSolutionPath(final GenerateSolutionPathCallback callback) {
+            ExecutorService es = Executors.newFixedThreadPool(1);
             es.execute(new Runnable() {
                 @Override
                 public void run() {
-                    showWorking(true);
                     try {
-                        if (words_graph == null) {
-                            words_graph = new Graph(getApplicationContext());
-                            words_graph.read_json_map_from_assets();
+                        Game.solution_path = words_graph.get_solution_path(start_word, end_word);
+                        if (Game.solution_path.size() == 2) {
+                            Log.d(TAG, "Wow, looks like you already win!");
+                            return;
                         }
                         callback.onComplete();
                     } catch (JSONException jsone) {
-                        Log.d(TAG, "Error. Reading JSON map from assets into words graph failed.");
+                        Log.d(TAG, "Error. Failed to generate solution path for the given start and end words.");
+                    } catch (IllegalArgumentException iae) {
+                        iae.printStackTrace();
                     }
                 }
             });
@@ -75,8 +82,8 @@ public class GameConfig extends AppCompatActivity {
         setContentView(R.layout.game_config);
 
         // reading in json words map from assets on a separate thread
-        ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
-        rijme.read_in_words_map(rijmc);
+        //ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
+        //rijme.read_in_words_map(rijmc);
 
 
         Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
@@ -125,25 +132,17 @@ public class GameConfig extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Start and end words can't be the same.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                if (start_word.length() != end_word.length()) {
+                else if (start_word.length() != end_word.length()) {
                     Toast.makeText(getApplicationContext(), "Start and end words must be same length.", Toast.LENGTH_LONG).show();
                     return;
                 }
-
-                try {
-                    Game.solution_path = words_graph.get_solution_path(start_word, end_word);
-                    if (Game.solution_path.size() == 2) {
-                        Log.d(TAG, "Wow, looks like you already win!");
-                    }
-                } catch (JSONException jsone) {
-                    Log.d(TAG, "Error. Failed to generate solution path for the given start and end words.");
-                } catch (IllegalArgumentException iae) {
+                else if (Game.solution_path != null && Game.solution_path.isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Sorry, no solution path was found for these words. Try entering something else!", Toast.LENGTH_SHORT).show();
                     return;
+                } else {
+                    GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
+                    gspe.generateSolutionPath(gspc);
                 }
-
-                Intent i = new Intent(getApplicationContext(), Game.class);
-                startActivity(i);
             }
         });
     }

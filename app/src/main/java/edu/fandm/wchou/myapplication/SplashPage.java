@@ -6,16 +6,63 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import org.json.JSONException;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class SplashPage extends AppCompatActivity {
     private static final String TAG = "SPLASH_PAGE";
+
+    public interface ReadInJsonMapCallback {
+        void onComplete();
+    }
+
+    ReadInJsonMapCallback rijmc = new ReadInJsonMapCallback() {
+        @Override
+        public void onComplete() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    //showWorking(false);
+                    Intent i = new Intent(getApplicationContext(), GameConfig.class);
+                    startActivity(i);
+
+                    finish();
+                }
+            });
+        }
+    };
+
+    public class ReadInJsonMapExecutor {
+        void read_in_words_map(final ReadInJsonMapCallback callback) {
+            ExecutorService es = Executors.newFixedThreadPool(1);
+            es.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //showWorking(true);
+                    try {
+                        GameConfig.words_graph = new Graph(getApplicationContext());
+                        GameConfig.words_graph.read_json_map_from_assets();
+                        callback.onComplete();
+                    } catch (JSONException jsone) {
+                        Log.d(TAG, "Error. Reading JSON map from assets into words graph failed.");
+                    }
+                }
+            });
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_page);
+
+
 
         // hide button bar
         ImageView logo = findViewById(R.id.imageView);
@@ -36,10 +83,8 @@ public class SplashPage extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent i = new Intent(getApplicationContext(), GameConfig.class);
-                startActivity(i);
-
-                finish();
+                ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
+                rijme.read_in_words_map(rijmc);
             }
         }, 1375);
     }
