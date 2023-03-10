@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 public class SplashPage extends AppCompatActivity {
+    private static final String TAG = "SPLASH_PAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,14 +25,11 @@ public class SplashPage extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-
-
         // hide action bar
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
-
 
         // Switches to another activity after 1.375s
         Handler handler = new Handler();

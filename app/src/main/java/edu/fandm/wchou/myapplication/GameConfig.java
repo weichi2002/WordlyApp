@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
@@ -20,6 +21,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,17 +32,89 @@ public class GameConfig extends AppCompatActivity {
     public static String start_word = "";
     public static String end_word = "";
 
-    boolean isGenerating;
+    public interface ReadInJsonMapCallback {
+        void onComplete();
+    }
+
+    ReadInJsonMapCallback rijmc = new ReadInJsonMapCallback() {
+        @Override
+        public void onComplete() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showWorking(false);
+                }
+            });
+        }
+    };
+
+    public class ReadInJsonMapExecutor {
+        void read_in_words_map(final ReadInJsonMapCallback callback) {
+            ExecutorService es = Executors.newFixedThreadPool(2);
+            es.execute(new Runnable() {
+                @Override
+                public void run() {
+                    showWorking(true);
+                    try {
+                        if (words_graph == null) {
+                            words_graph = new Graph(getApplicationContext());
+                            words_graph.read_json_map_from_assets();
+                        }
+                        callback.onComplete();
+                    } catch (JSONException jsone) {
+                        Log.d(TAG, "Error. Reading JSON map from assets into words graph failed.");
+                    }
+                }
+            });
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_config);
 
+        // reading in json words map from assets on a separate thread
+        ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
+        rijme.read_in_words_map(rijmc);
+
+
         Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
         newPuzzleBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // get editText for start and end words here
+                EditText start_et = (EditText) findViewById(R.id.start_word_et);
+                EditText end_et = (EditText) findViewById(R.id.end_word_et);
+
+                try {
+                    // set random start and end words from map when "New Puzzle" button is clicked by user
+                    JSONArray word_keys = words_graph.getWordsMap().names();
+                    Random rand = new Random();
+                    int rand_word_index = rand.nextInt(word_keys.length());
+                    int rand_word_index2 = rand.nextInt(word_keys.length());
+
+                    String rand_start_word = words_graph.getWordsMap().names().getString(rand_word_index);
+                    String rand_end_word = words_graph.getWordsMap().names().getString(rand_word_index2);
+
+                    // keep getting a new random end word until one with same length as start word is found
+                    while (rand_start_word.length() != rand_end_word.length()) {
+                        rand_word_index2 = rand.nextInt(word_keys.length());
+                        rand_end_word = words_graph.getWordsMap().names().getString(rand_word_index2);
+                    }
+                    start_et.setText(rand_start_word);
+                    end_et.setText(rand_end_word);
+                } catch (JSONException jsone) {
+                    //Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Error. Indexing a random start and end word failed.");
+                }
+            }
+        });
+
+        Button playBtn = (Button) findViewById(R.id.play_btn);
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 // get editText for start and end words here
                 EditText start_et = (EditText) findViewById(R.id.start_word_et);
                 start_word = start_et.getText().toString();
@@ -56,40 +130,22 @@ public class GameConfig extends AppCompatActivity {
                     return;
                 }
 
-
-                //SolutionPathExecutor spe = new SolutionPathExecutor();
-                //spe.build_words_dictionary(start_word, end_word, spc);
-
-                // move this to a separate thread
-                if (words_graph == null) {
-                    words_graph = new Graph(getApplicationContext());
-                    try {
-                        words_graph.read_json_map_from_assets();
-                    } catch (JSONException jsone) {
-                        Log.d(TAG, "Error. Reading JSON map data from assets file failed.");
-                    }
-                }
-                // move above to a separate thread
-
-
                 try {
                     Game.solution_path = words_graph.get_solution_path(start_word, end_word);
+                    if (Game.solution_path.size() == 2) {
+                        Log.d(TAG, "Wow, looks like you already win!");
+                    }
                 } catch (JSONException jsone) {
                     Log.d(TAG, "Error. Failed to generate solution path for the given start and end words.");
+                } catch (IllegalArgumentException iae) {
+                    Toast.makeText(getApplicationContext(), "Sorry, no solution path was found for these words. Try entering something else!", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-            }
-        });
 
-        Button playBtn = (Button) findViewById(R.id.play_btn);
-        playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), Game.class);
                 startActivity(i);
             }
         });
-        //isGenerating = true;
-        //showWorking(isGenerating);
     }
 
     private void showWorking(boolean on) {

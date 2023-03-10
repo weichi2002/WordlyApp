@@ -29,9 +29,8 @@ import java.util.Scanner;
 
 public class Graph {
     private static final String TAG = "GRAPH";
-    private JSONObject words = new JSONObject();
+    private JSONObject words;
     private Context context = null; // get and store app context
-
     private String words_source_file = "source_words.txt";
     private String json_map_file_name = "words_json_dictionary.txt";
 
@@ -46,81 +45,14 @@ public class Graph {
     }
 
     public Graph(Context c) {
-        //this.words = new HashMap<String, ArrayList<String>>();
+        this.words = new JSONObject();
         this.context = c;
-
-        //Log.d(TAG, "Building word paths, one moment...");
-//        try {
-//            this.build_words_map();
-//        } catch (JSONException jsone) {
-//            Toast.makeText(context, "Error. Failed to build word/neighbor mappings.", Toast.LENGTH_SHORT).show();
-//            jsone.printStackTrace();
-//        }
-        // writing built words map to a file as a string-converted JSONObject in app's internal storage
-        //this.write_to_internal_file();
-
-        //this.read_from_internal_file(); // can always use after initial json map written to app's internal storage
-
-
     }
 
     public void build_words_map() throws JSONException {
         // build words dictionary
         this.get_word_keys(); // put word keys into dict
         this.get_word_values(); // put words' neighbors as their values
-    }
-
-    // **Still need to work on this part**
-    private void write_to_internal_file() {
-        // write dictionary to an assets file to hold it in app's internal storage
-        File rootDirOfApp = context.getFilesDir();
-        File targetFile = new File(rootDirOfApp, json_map_file_name);
-
-        //JSONObject word_dict_as_json = new JSONObject(words); // pass in words map to a new json object
-        try {
-            FileWriter fw = new FileWriter(targetFile);
-            fw.write(words.toString()); // write json map object to file as a string
-            fw.close();
-        } catch (IOException ioe) {
-            Toast.makeText(context, "Failed to write to file!", Toast.LENGTH_LONG).show();
-            ioe.printStackTrace();
-        }
-        Log.d(TAG, "Wrote to: " + targetFile.getAbsolutePath());
-    }
-
-    private void read_from_internal_file() {
-        // get file
-        File rootDirOfApp = context.getFilesDir();
-        File targetFile = new File(rootDirOfApp, this.json_map_file_name);
-
-        // read data from the file
-        try {
-
-            Scanner s = new Scanner(targetFile);
-            String line = "";
-            while (s.hasNextLine()) {
-                line += s.nextLine();
-            }
-            s.close();
-
-            // convert string read from file back to a json object
-            JSONObject read_string_as_json = new JSONObject(line);
-            //this.words = read_string_as_json.toJSONArray();
-
-            // use fetched json object as the words map
-            this.words = read_string_as_json;
-
-
-            //Log.d(TAG, "JSON object to string:\n" + read_string_as_json.toString());
-            Log.d(TAG, "JSON object length:\n" + read_string_as_json.length());
-
-        } catch (FileNotFoundException fnfe) {
-            Log.d(TAG, "Failed to read file!");
-            fnfe.printStackTrace();
-        } catch (JSONException jsone) {
-            Log.d(TAG, "Failed to create JSON object from file.");
-            jsone.printStackTrace();
-        }
     }
 
     public void read_json_map_from_assets() throws JSONException {
@@ -169,9 +101,15 @@ public class Graph {
     @NonNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Iterator<String> it = words.keys(); it.hasNext(); ) {
-            String w = it.next();
-            sb.append(w + ": " + words.optString(w) + '\n');
+        JSONArray word_keys = words.names();
+        for (int i = 0; i < words.length(); i++) {
+            String w = null;
+            try {
+                w = word_keys.getString(i);
+                sb.append(w + ": " + words.optJSONArray(w) + '\n');
+            } catch (JSONException e) {
+                Log.d(TAG, "Error. Making graph string failed.");
+            }
         }
         return sb.toString();
     }
@@ -264,6 +202,4 @@ public class Graph {
         if (path.isEmpty()) throw new IllegalArgumentException("Error. No solution path found.");
         return path;
     }
-
-
 }
