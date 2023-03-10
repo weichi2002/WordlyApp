@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -28,7 +29,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -47,12 +50,12 @@ public class Game extends AppCompatActivity {
     private static int guess_index = 1;
 
     private ImageView imageView;
-    private List<String> imageUrls = new ArrayList<>();
+    private  String[] imageUrls = new String[3];
+
     private int currentImageIndex = 0;
 
     private String apiKey = "34252989-dc19ee59010aba0c0da5b8937";
-
-
+    private Handler handler;
 
     private void fullScreen(){
         // hide button bar
@@ -73,12 +76,14 @@ public class Game extends AppCompatActivity {
 
 
     private void endGame(){
-
+        handler.removeCallbacksAndMessages(null);
         ImageView starImg = (ImageView)findViewById(R.id.clue_pic);
         starImg.setImageResource(R.drawable.baseline_star_24);
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate);
         animation.setDuration(5000);
         starImg.startAnimation(animation);
+
+
 
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
@@ -108,13 +113,11 @@ public class Game extends AppCompatActivity {
             guess_index++;
             guessed_list.add(answer);
             Log.d("GUeSSED LIST ADDEDED", answer);
-
             //The user got to the last word
             if (guess_index == solution_path.size()-1) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
                 endGame();
             } else {
-                imageUrls.clear();
                 updateHintAndImage(); // update hint and img with next word to guess
             }
 
@@ -160,10 +163,10 @@ public class Game extends AppCompatActivity {
     }
 
     private void generateImages(){
-        OkHttpClient client = new OkHttpClient();
-        String url = "https://pixabay.com/api/?key=" + apiKey + "&q=" + curr_word_in_solution_to_guess + "&image_type=photo";
-        Request request = new Request.Builder().url(url).build();
         imageView = (ImageView)findViewById(R.id.clue_pic);
+        OkHttpClient client = new OkHttpClient();
+        String url = "https://pixabay.com/api/?key=" + apiKey + "&q=" + curr_word_in_solution_to_guess + "&image_type=photo&per_page=3";
+        Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -178,38 +181,23 @@ public class Game extends AppCompatActivity {
                         // Parse the JSON response to retrieve the image URLs
                         JSONObject jsonObject = new JSONObject(responseData);
                         JSONArray jsonArray = jsonObject.getJSONArray("hits");
-                        final String[] imageUrls = new String[jsonArray.length()];
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject hit = jsonArray.getJSONObject(i);
-                            imageUrls[i] = hit.getString("webformatURL");
+                            String imageUrl = hit.getString("webformatURL");
+                            imageUrls[i] = imageUrl;
                         }
 
-                        // Display a random image from the retrieved URLs in the ImageView
-                        Random random = new Random();
-                        int index = random.nextInt(imageUrls.length);
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
-//                            }
-//                        });
 
                         // Cycle through the retrieved images every 5 seconds
-                        while (true) {
-                            try {
-                                Thread.sleep(5000);
-                                index = (index + 1) % imageUrls.length;
-                                int finalIndex = index;
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Picasso.get().load(imageUrls[finalIndex]).into(imageView);
-                                    }
-                                });
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                        handler = new Handler(Looper.getMainLooper());
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+                                Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
+                                handler.postDelayed(this, 5000);
                             }
-                        }
+                        }, 5000);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -218,14 +206,6 @@ public class Game extends AppCompatActivity {
         });
     }
 
-//
-//    private void loadImage() {
-//        Picasso.get()
-//                .load(imageUrls.get(currentImageIndex))
-//
-//                .into(imageView);
-//
-//    }
 
     //Populate the horizontal list of textviews of solution path
     //adapted from chatgpt
@@ -282,8 +262,11 @@ public class Game extends AppCompatActivity {
     };
 
     protected void updateHintAndImage() {
-
+        if(handler != null){
+            handler.removeCallbacksAndMessages(null);
+        }
         //hint button shows the letter difference of the known word and the next word
+//        handler.removeCallbacks();
         curr_word_in_solution_to_guess = solution_path.get(guess_index);
         Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
         char diff = getLetterDifference(solution_path.get(guess_index-1), curr_word_in_solution_to_guess);
@@ -296,30 +279,8 @@ public class Game extends AppCompatActivity {
             }
         });
 
-        // generate image from API based on the next word in solution path
-        //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
-//        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess);
-//        imageUrls.add("https://source.unsplash.com/featured/?"+curr_word_in_solution_to_guess+"s");
-//        imageUrls.add("https://pixabay.com/api/?key=34252989-dc19ee59010aba0c0da5b8937Y&q=" + curr_word_in_solution_to_guess);
-
+        //adapted from chatgpt
         generateImages();
-
-//        imageView = findViewById(R.id.clue_pic);
-//
-        // Load the first image
-//        loadImage();
-//        // Set up a listener to cycle through the images
-//        imageView.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                currentImageIndex = (currentImageIndex + 1) % imageUrls.size();
-//                loadImage();
-//                imageView.postDelayed(this, 5000); // Change image every 5 seconds
-//            }
-//        }, 5000);
-
-
-
     }
 
     @Override
@@ -346,6 +307,12 @@ public class Game extends AppCompatActivity {
         outState.putStringArrayList("guessed_list", guessed_list);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove any pending callbacks from the handler to prevent memory leaks
+        handler.removeCallbacksAndMessages(null);
+    }
 
 
 }
