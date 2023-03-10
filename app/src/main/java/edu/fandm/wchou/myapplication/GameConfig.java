@@ -1,13 +1,22 @@
 package edu.fandm.wchou.myapplication;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +40,9 @@ public class GameConfig extends AppCompatActivity {
     protected static Graph words_graph;
     public static String start_word = "";
     public static String end_word = "";
+
+    private static final String PREFS_NAME = "MyPrefsFile";
+    private static final String LAST_APP_VERSION = "last_app_version";
 
 
 
@@ -89,6 +101,22 @@ public class GameConfig extends AppCompatActivity {
         // reading in json words map from assets on a separate thread
         //ReadInJsonMapExecutor rijme = new ReadInJsonMapExecutor();
         //rijme.read_in_words_map(rijmc);
+
+        int currentVersionCode = BuildConfig.VERSION_CODE;
+
+        // Get the last app version code from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int lastVersionCode = prefs.getInt(LAST_APP_VERSION, 0);
+        if (currentVersionCode > lastVersionCode) {
+            showPopup();
+
+            // Update the last app version in SharedPreferences
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt(LAST_APP_VERSION, currentVersionCode);
+            editor.apply();
+        }
+
+
 
 
         Button newPuzzleBtn = (Button) findViewById(R.id.new_puzzle_bt);
@@ -184,5 +212,27 @@ public class GameConfig extends AppCompatActivity {
 
     private static void disableButton(Button b) {
         b.setEnabled(false);
+    }
+
+    //Adapted from chatGPT
+    private void showPopup() {
+        LayoutInflater inflater = (LayoutInflater) GameConfig.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View popupView = inflater.inflate(R.layout.instruction_pop_up, null);
+
+        PopupWindow popupWindow = new PopupWindow(GameConfig.this);
+        popupWindow.setContentView(popupView);
+
+        View rootView = findViewById(android.R.id.content);
+        ViewTreeObserver vto = rootView.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // Remove the listener so it only gets called once
+                rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                // Show the popup window
+                popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
+            }
+        });
     }
 }

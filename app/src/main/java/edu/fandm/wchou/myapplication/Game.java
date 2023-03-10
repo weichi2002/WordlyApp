@@ -215,9 +215,6 @@ public class Game extends AppCompatActivity {
         //Adapted from https://www.youtube.com/watch?v=4UFNT6MhIlA
         ImageView cluePic = (ImageView) findViewById(R.id.clue_pic);
         String curr_img_url = "https://source.unsplash.com/1600x900/?" + curr_word_in_solution_to_guess;
-
-        // TODO: fix error caused when in landscape mode "Cannot start a load for a destroyed activity." (IllegalArgumentException)
-        // TODO: this error is also occurring for other cases, like when hitting the back button mid-game to go back to the GameConfig activity screen
         Glide.with(this).load(curr_img_url).apply(new RequestOptions().centerCrop()).into(cluePic);
 
         Handler handler = new Handler();
