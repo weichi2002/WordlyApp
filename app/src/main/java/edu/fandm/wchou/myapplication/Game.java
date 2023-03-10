@@ -30,6 +30,8 @@ public class Game extends AppCompatActivity {
     private static final String TAG = "GAME";
     public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
     private static String curr_word_in_solution_to_guess = "";
+
+    private ArrayList<String> guessed_list = new ArrayList<>();
     private static int guess_index = 1;
 
 
@@ -86,13 +88,12 @@ public class Game extends AppCompatActivity {
             textView.setGravity(Gravity.CENTER);
             textView.setText(answer);
             guess_index++;
-
+            guessed_list.add(answer);
             //The user got to the last word
             if (guess_index == solution_path.size()-1) {
                 Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
                 endGame();
             } else {
-
                 updateHintAndImage(); // update hint and img with next word to guess
             }
 
@@ -146,7 +147,7 @@ public class Game extends AppCompatActivity {
         for(int i = 0; i < solution_path.size(); i++){
 
             TextView textView = new TextView(this);
-            if (i == 0 || i == solution_path.size()-1){
+            if (i == 0 || i == solution_path.size()-1 || guessed_list.contains(solution_path.get(i))){
                 textView.setText(solution_path.get(i));
                 textView.setTextSize(20);
                 textView.setGravity(Gravity.CENTER);
@@ -232,6 +233,10 @@ public class Game extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+        if (savedInstanceState != null) {
+            guessed_list = savedInstanceState.getStringArrayList("myList");
+        }
+        guessed_list.add("zzzz");
 
         fullScreen();
         populateList();
@@ -239,6 +244,11 @@ public class Game extends AppCompatActivity {
 
         // TODO: new images not showing up when it says they're updating?
 
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putStringArrayList("guessed_list", guessed_list);
     }
 }
 
