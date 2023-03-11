@@ -76,7 +76,9 @@ public class Game extends AppCompatActivity {
 
 
     private void endGame(){
-        handler.removeCallbacksAndMessages(null);
+        if(handler!=null){
+            handler.removeCallbacksAndMessages(null);
+        }
         ImageView starImg = (ImageView)findViewById(R.id.clue_pic);
         starImg.setImageResource(R.drawable.baseline_star_24);
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate);
