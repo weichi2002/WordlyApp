@@ -188,7 +188,7 @@ public class Graph {
                 if (neighbors != null) {
                     for (int i = 0; i < neighbors.length(); i++) {
                         String neighbor = neighbors.getString(i);
-                        Log.d(TAG, "Checking neighbor: " + neighbor);
+//                        Log.d(TAG, "Checking neighbor: " + neighbor);
 
                         if ((!visited.contains(neighbor))) {
                             words_queue.addLast(neighbor);
