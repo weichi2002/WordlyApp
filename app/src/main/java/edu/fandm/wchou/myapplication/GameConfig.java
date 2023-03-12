@@ -111,7 +111,13 @@ public class GameConfig extends AppCompatActivity {
         this.new_puzzle_button = (Button) findViewById(R.id.new_puzzle_bt);
 
         this.words_graph = new Graph(getApplicationContext(), words_json_map);
-        this.word_keys = words_graph.getWordsMap().names();
+
+        try {
+            this.word_keys = words_graph.getWordsMap().names();
+        } catch (NullPointerException npe) {
+            Log.d(TAG, "Error. Retrieving word keys from graph failed.");
+            return;
+        }
 
         int currentVersionCode = BuildConfig.VERSION_CODE;
 

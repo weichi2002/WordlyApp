@@ -33,7 +33,7 @@ public class Graph {
 
     //private JSONArray words_adjacency_matrix = new JSONArray();
 
-    public JSONObject getWordsMap() {
+    public JSONObject getWordsMap() throws NullPointerException {
         return this.words;
     }
     public Context getContext() throws NullPointerException {

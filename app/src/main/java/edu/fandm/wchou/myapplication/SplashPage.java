@@ -48,7 +48,12 @@ public class SplashPage extends AppCompatActivity {
                     try {
                         Graph g = new Graph(getApplicationContext());
                         g.read_json_map_from_assets();
-                        GameConfig.words_json_map = g.getWordsMap();
+                        try {
+                            GameConfig.words_json_map = g.getWordsMap();
+                        } catch (NullPointerException npe) {
+                            Log.d(TAG, "Error. Getting words map from graph failed.");
+                            return;
+                        }
                     } catch (JSONException jsone) {
                         Log.d(TAG, "Error. Reading JSON map from assets into words graph failed.");
                     }

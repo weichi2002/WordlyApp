@@ -23,7 +23,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:layout_marginLeft="100dp"
-            android:text="mask"
+            android:text=""
             android:textSize="15sp" />
 
         <EditText
@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:layout_marginRight="100dp"
-            android:text="part"
+            android:text=""
             android:textSize="15sp" />
 
     </LinearLayout>
