@@ -79,6 +79,8 @@ public class Game extends AppCompatActivity {
         if(handler!=null){
             handler.removeCallbacksAndMessages(null);
         }
+        //reset the count index
+        guess_index = 1;
         ImageView starImg = (ImageView)findViewById(R.id.clue_pic);
         starImg.setImageResource(R.drawable.baseline_star_24);
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate);
@@ -278,6 +280,7 @@ public class Game extends AppCompatActivity {
         }
         //hint button shows the letter difference of the known word and the next word
 //        handler.removeCallbacks();
+        Log.d(TAG, "GUESS INDEX: " + String.valueOf(guess_index));
         curr_word_in_solution_to_guess = solution_path.get(guess_index);
         Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
         char diff = getLetterDifference(solution_path.get(guess_index-1), curr_word_in_solution_to_guess);
