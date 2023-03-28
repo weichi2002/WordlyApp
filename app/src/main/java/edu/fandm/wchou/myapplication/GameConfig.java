@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -26,15 +25,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -69,9 +61,9 @@ public class GameConfig extends AppCompatActivity {
                     start_et.setText(start);
                     end_et.setText(end);
 
-                    if (Game.solution_path.isEmpty()) {
+                    if (Game.solutionPath.isEmpty()) {
                         Toast.makeText(getApplicationContext(), "Sorry, no solution path was found for these words. Try entering something else.", Toast.LENGTH_SHORT).show();
-                    } else if (Game.solution_path.size() == 2) {
+                    } else if (Game.solutionPath.size() == 2) {
                         Toast.makeText(getApplicationContext(), "Wow, looks like you already win! Try entering something else.", Toast.LENGTH_SHORT).show();
                     }
 
@@ -89,8 +81,8 @@ public class GameConfig extends AppCompatActivity {
                 @Override
                 public void run() {
                     try {
-                        Game.solution_path = words_graph.get_solution_path(start_word, end_word);
-                        if (Game.solution_path.size() == 2) {
+                        Game.solutionPath = words_graph.get_solution_path(start_word, end_word);
+                        if (Game.solutionPath.size() == 2) {
                             Log.d(TAG, "Wow, looks like you already win!");
                         }
                     } catch (JSONException jsone) {
@@ -195,7 +187,7 @@ public class GameConfig extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Sorry, words must be 4 letters long.", Toast.LENGTH_SHORT).show();
                     return;
                 } else if (start_word.equals(user_start_word) && end_word.equals(user_end_word)) {
-                    if (Game.solution_path != null && Game.solution_path.size() > 2) {
+                    if (Game.solutionPath != null && Game.solutionPath.size() > 2) {
                         Intent i = new Intent(getApplicationContext(), Game.class);
                         startActivity(i);
                     } else {
@@ -210,7 +202,7 @@ public class GameConfig extends AppCompatActivity {
                     GenerateSolutionPathExecutor gspe = new GenerateSolutionPathExecutor();
                     gspe.generateSolutionPath(user_start_word, user_end_word, gspc);
 
-                    if (Game.solution_path != null && Game.solution_path.size() > 2) {
+                    if (Game.solutionPath != null && Game.solutionPath.size() > 2) {
                         start_word = user_start_word;
                         end_word = user_end_word;
 

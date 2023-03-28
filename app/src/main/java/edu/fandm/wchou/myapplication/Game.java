@@ -3,62 +3,63 @@ package edu.fandm.wchou.myapplication;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+//star animation
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+//fetching images
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
-import java.util.Random;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
+import com.squareup.picasso.Picasso;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.util.ArrayList;
+import android.os.Handler;
 
 public class Game extends AppCompatActivity {
-    private static final String TAG = "GAME";
-    public static ArrayList<String> solution_path; // GameConfig will set solution path here in Game
-    private static String curr_word_in_solution_to_guess = "";
 
-    private ArrayList<String> guessed_list;
-    private static int guess_index = 1;
+    //word puzzle solution
+    public static ArrayList<String> solutionPath; // GameConfig will set solution path here in Game
+    private static String currWordToGuess = "";
+    private ArrayList<String> guessedList;
+    private static int guessIndex = 1;
 
+    //fetching images
     private ImageView imageView;
     private  String[] imageUrls = new String[3];
-
     private int currentImageIndex = 0;
+    private String APIKEY = "34252989-dc19ee59010aba0c0da5b8937";
 
-    private String apiKey = "34252989-dc19ee59010aba0c0da5b8937";
+    //use handler for threading to display images
     private Handler handler;
 
     private void fullScreen(){
-        // hide button bar
+        hideActionBar();
+        hideButtonBar();
+    }
+
+    private void hideButtonBar(){
         View imgView = findViewById(R.id.clue_pic);
         View rootView = imgView.getRootView();
         rootView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
@@ -66,29 +67,83 @@ public class Game extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
 
-        // hide action bar
+    private void hideActionBar(){
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
     }
 
+    private void guessedCorrect(TextView textView, String answer){
 
-    private void endGame(){
+        // Set the correct answer to the empty TextView
+        textView.setTextSize(20);
+        textView.setGravity(Gravity.CENTER);
+        textView.setText(answer);
+
+        // Increment the index and update the list and the new solution
+        guessIndex++;
+        guessedList.add(answer);
+        currWordToGuess = solutionPath.get(guessIndex);
+
+
+        //Check if user solved the puzzle
+        if (guessIndex == solutionPath.size()-1) {
+            Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
+            endGame();
+        } else {
+            updateHintAndImage(); // update hint and img with next word to guess
+        }
+    }
+
+
+    private void checkGuess(TextView textView, EditText input, int i){
+        String guess = input.getText().toString().toLowerCase();
+        String answer = solutionPath.get(i);
+
+        //user guessed incorrect word length
+        if(guess.length()!=GameConfig.start_word.length()){
+            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" letters long"), Toast.LENGTH_SHORT).show();
+
+        //user guessed correct
+        }else if(guess.equals(answer)){
+            Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
+            guessedCorrect(textView, answer);
+
+        //user's guessed is off by 2+ letters
+        }else if(!hasOneLetterDifference(answer, guess)){
+            Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
+
+        //user guessed close, by off by one letter
+        }else{
+            Toast.makeText(Game.this, "That is not the word I am thinking of", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Remove any pending callbacks from the handler to prevent memory leaks
+    private void checkHandlerNull(){
         if(handler!=null){
             handler.removeCallbacksAndMessages(null);
         }
-        //reset the count index
-        guess_index = 1;
+    }
+
+    private void showStarAnimation(){
         ImageView starImg = (ImageView)findViewById(R.id.clue_pic);
         starImg.setImageResource(R.drawable.baseline_star_24);
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate);
         animation.setDuration(5000);
         starImg.startAnimation(animation);
+    }
 
+    private void endGame(){
+        //reset the count index because it is a static variable, which does get destroyed when the activity is finished
+        guessIndex = 1;
+        showStarAnimation();
 
-
+        //remove pending callback first to prevent leaks
+        checkHandlerNull();
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
@@ -100,41 +155,7 @@ public class Game extends AppCompatActivity {
         }, 5000);
     }
 
-    private void checkGuess(TextView textView, EditText input, int i){
-        String guess = input.getText().toString().toLowerCase();
-        String answer = solution_path.get(i);
-        // Set the new text to the TextView
-        Log.d("The index  is", String.valueOf(i));
-        Log.d("The solution is", solution_path.get(i));
-        Log.d("The guess is", guess);
-        if(guess.length()!=GameConfig.start_word.length()){
-            Toast.makeText(Game.this, "The word is not " + (String.valueOf(GameConfig.start_word.length()) +" letters long"), Toast.LENGTH_SHORT).show();
-        }else if(guess.equals(answer)){
-            Toast.makeText(Game.this, "Correct", Toast.LENGTH_SHORT).show();
-            textView.setTextSize(20);
-            textView.setGravity(Gravity.CENTER);
-            textView.setText(answer);
-            guess_index++;
-            guessed_list.add(answer);
-            Log.d("GUeSSED LIST ADDEDED", answer);
-            //The user got to the last word
-            if (guess_index == solution_path.size()-1) {
-                Toast.makeText(getApplicationContext(), "You win!", Toast.LENGTH_LONG).show();
-                endGame();
-            } else {
-                updateHintAndImage(); // update hint and img with next word to guess
-            }
-
-        }else if(!hasOneLetterDifference(answer, guess)){
-            Toast.makeText(Game.this, "That is more than one letter difference", Toast.LENGTH_SHORT).show();
-        }else{
-            Toast.makeText(Game.this, "That is not the word I am thinking of", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
-    //adapted from chatGPT
-    private void onClick(TextView textView, int i){
+    private void createDialogInput(TextView textView, int i){
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             // Handle click event here
@@ -166,10 +187,11 @@ public class Game extends AppCompatActivity {
 
     }
 
+    //adapted from stackoverflow and chatgpt
     private void generateImages(){
         imageView = (ImageView)findViewById(R.id.clue_pic);
         OkHttpClient client = new OkHttpClient();
-        String url = "https://pixabay.com/api/?key=" + apiKey + "&q=" + curr_word_in_solution_to_guess + "&image_type=photo&per_page=3";
+        String url = "https://pixabay.com/api/?key=" + APIKEY + "&q=" + currWordToGuess + "&image_type=photo&per_page=3";
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -191,23 +213,17 @@ public class Game extends AppCompatActivity {
                             imageUrls[i] = imageUrl;
                         }
 
-
-                        // Cycle through the retrieved images every 5 seconds
+                        // Cycle through the retrieved three images every 5 seconds
                         handler = new Handler(Looper.getMainLooper());
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
+
+                                //this makes the image cycle through infinitely
                                 currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+                                //Picasso is a library that uses thread to fetch images
                                 Picasso.get().load(imageUrls[currentImageIndex]).fit().centerCrop().into(imageView);
-                                View rootView = imageView.getRootView();
-                                rootView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
-                                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
                                 handler.postDelayed(this, 5000);
-
-
 
                             }
                         }, 5000);
@@ -219,24 +235,23 @@ public class Game extends AppCompatActivity {
         });
     }
 
-
-    //Populate the horizontal list of textviews of solution path
-    //adapted from chatgpt
+    //Populate the horizontal list of textview of solution path
+    //adapted from chatgpt and stackoverflow: "How to create a dynamic scrollable layout?"
     private void populateList(){
         LinearLayout linearLayout = findViewById(R.id.linear_layout);
-        for(int i = 0; i < solution_path.size(); i++){
+        for(int i = 0; i < solutionPath.size(); i++){
 
             TextView textView = new TextView(this);
-            if ( (guessed_list != null && guessed_list.contains(solution_path.get(i))) || i == 0 || i == solution_path.size()-1 ){
-                textView.setText(solution_path.get(i));
+            if ( (guessedList != null && guessedList.contains(solutionPath.get(i))) || i == 0 || i == solutionPath.size()-1 ){
+                textView.setText(solutionPath.get(i));
                 textView.setTextSize(20);
                 textView.setGravity(Gravity.CENTER);
             }else{
                 //allow the user to click and enter guess
-                onClick(textView, i);
+                createDialogInput(textView, i);
             }
             textView.setBackgroundResource(R.drawable.border);
-            textView.setWidth(60*solution_path.get(0).length());
+            textView.setWidth(60* solutionPath.get(0).length());
             textView.setHeight(75);
 
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
@@ -250,17 +265,15 @@ public class Game extends AppCompatActivity {
 
     }
 
-    // neighbors => same length with exactly one letter different between them
+    //check if two words has one letter difference
     private boolean hasOneLetterDifference(String word1, String word2) {
-
-        int differ_count = 0;
+        int diff = 0;
         for (int i = 0; i < word1.length(); i++) {
             if (word1.charAt(i) != word2.charAt(i)) {
-                differ_count++;
+                diff++;
             }
         }
-
-        return (differ_count == 1);
+        return (diff == 1);
     }
 
     private char getLetterDifference(String previous, String current){
@@ -270,21 +283,21 @@ public class Game extends AppCompatActivity {
                 return current.charAt(i);
             }
         }
-        //This wont go here because there is guaranteed one letter difference according to the dictionary
+        /*This is just dummy content to bypass the return requirement, it is guaranteed that
+        there will be a difference between every letters in the dictionary.
+        */
         return 'z';
     };
 
     protected void updateHintAndImage() {
-        if(handler != null){
-            handler.removeCallbacksAndMessages(null);
-        }
-        //hint button shows the letter difference of the known word and the next word
-//        handler.removeCallbacks();
-        Log.d(TAG, "GUESS INDEX: " + String.valueOf(guess_index));
-        curr_word_in_solution_to_guess = solution_path.get(guess_index);
-        Log.d(TAG, "Next word to guess: " + curr_word_in_solution_to_guess);
-        char diff = getLetterDifference(solution_path.get(guess_index-1), curr_word_in_solution_to_guess);
+        checkHandlerNull();
+        updateHintButton();
+        generateImages();
+    }
 
+    private void updateHintButton(){
+        //hint button shows the letter difference of the known word and the next word
+        char diff = getLetterDifference(solutionPath.get(guessIndex -1), currWordToGuess);
         ExtendedFloatingActionButton hintBtn = (ExtendedFloatingActionButton) findViewById(R.id.fab);
         hintBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -292,44 +305,43 @@ public class Game extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), String.valueOf(diff), Toast.LENGTH_SHORT).show();
             }
         });
-
-        //adapted from chatgpt
-        generateImages();
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        //check if there is an instance saved before creating a new arraylist
         if (savedInstanceState != null) {
-            guessed_list = savedInstanceState.getStringArrayList("guessed_list");
-            for(String item: guessed_list){
-                Log.d("GUESSED LIST HAS", item);
-            }
+            guessedList = savedInstanceState.getStringArrayList("guessed_list");
         }else{
-            guessed_list = new ArrayList<>();
+            guessedList = new ArrayList<>();
         }
+
+        //initialize the first word to guess so that hint button and images works
+        currWordToGuess = solutionPath.get(guessIndex);
 
         fullScreen();
         populateList();
         updateHintAndImage();
 
     }
+
+    //save the guessed list to preserve the user progress.
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putStringArrayList("guessed_list", guessed_list);
+        outState.putStringArrayList("guessed_list", guessedList);
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Remove any pending callbacks from the handler to prevent memory leaks
-        if(handler!=null){
-            handler.removeCallbacksAndMessages(null);
-        }
+        //clear the handler to prevent leaks and crash
+        checkHandlerNull();
     }
-
-
 }
 
